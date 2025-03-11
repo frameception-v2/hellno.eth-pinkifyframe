@@ -302,24 +302,51 @@ export default function Frame() {
     }
   }, [isSDKLoaded, addFrame]);
 
-  // Check URL parameters for intensity value
+  // Sync with localStorage and URL parameters on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
+        // First check URL parameters (highest priority)
         const params = new URLSearchParams(window.location.search);
         const intensityParam = params.get('intensity');
+        
         if (intensityParam) {
           const intensityValue = parseInt(intensityParam, 10);
           if (!isNaN(intensityValue) && intensityValue >= 0 && intensityValue <= 100) {
             setIntensity(intensityValue);
             localStorage.setItem('pinkify-intensity', intensityValue.toString());
+            console.log(`Intensity set from URL: ${intensityValue}%`);
+            return; // URL param takes precedence
+          }
+        }
+        
+        // Then check localStorage if no valid URL param
+        const savedIntensity = localStorage.getItem('pinkify-intensity');
+        if (savedIntensity) {
+          const savedValue = parseInt(savedIntensity, 10);
+          if (!isNaN(savedValue) && savedValue >= 0 && savedValue <= 100) {
+            setIntensity(savedValue);
+            console.log(`Intensity restored from localStorage: ${savedValue}%`);
           }
         }
       } catch (error) {
-        console.error("Error parsing URL parameters:", error);
+        console.error("Error syncing intensity value:", error);
+        // Fallback to default value if there's an error
+        setIntensity(50);
       }
     }
   }, []);
+  
+  // Sync to localStorage whenever intensity changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('pinkify-intensity', intensity.toString());
+      } catch (error) {
+        console.error("Error saving to localStorage:", error);
+      }
+    }
+  }, [intensity]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -423,9 +450,7 @@ export default function Frame() {
                     onChange={(e) => {
                       const newValue = parseInt(e.target.value, 10);
                       setIntensity(newValue);
-                      if (typeof window !== 'undefined') {
-                        localStorage.setItem('pinkify-intensity', newValue.toString());
-                      }
+                      // localStorage sync is now handled by the dedicated useEffect
                     }}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     style={{
