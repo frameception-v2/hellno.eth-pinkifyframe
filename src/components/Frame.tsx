@@ -473,39 +473,110 @@ export default function Frame() {
               <div className="controls-container">
                 <button
                   onClick={() => {
-                    if (!canvasRef.current) return;
+                    if (!canvasRef.current || !imageLoaded) return;
                     
-                    // Create download link
-                    const link = document.createElement('a');
-                    link.download = `pinkified-profile-${Date.now()}.png`;
-                    link.href = canvasRef.current.toDataURL('image/png');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    // Show feedback toast for mobile users
-                    const toast = document.createElement('div');
-                    toast.textContent = 'Image downloaded!';
-                    toast.style.position = 'fixed';
-                    toast.style.bottom = '20px';
-                    toast.style.left = '50%';
-                    toast.style.transform = 'translateX(-50%)';
-                    toast.style.backgroundColor = '#ec4899';
-                    toast.style.color = 'white';
-                    toast.style.padding = '8px 16px';
-                    toast.style.borderRadius = '4px';
-                    toast.style.zIndex = '1000';
-                    toast.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-                    document.body.appendChild(toast);
-                    
-                    // Remove toast after 2 seconds
-                    setTimeout(() => {
-                      document.body.removeChild(toast);
-                    }, 2000);
+                    try {
+                      // Create a high-quality PNG with proper filename
+                      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                      const filename = `pinkified-profile-${timestamp}.png`;
+                      
+                      // Get canvas data with maximum quality
+                      const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
+                      
+                      // Create and trigger download
+                      const link = document.createElement('a');
+                      link.download = filename;
+                      link.href = dataUrl;
+                      link.rel = 'noopener noreferrer';
+                      document.body.appendChild(link);
+                      link.click();
+                      
+                      // Clean up
+                      setTimeout(() => {
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(dataUrl);
+                      }, 100);
+                      
+                      // Show feedback toast for mobile users
+                      const toast = document.createElement('div');
+                      toast.textContent = 'Image downloaded!';
+                      toast.style.position = 'fixed';
+                      toast.style.bottom = '20px';
+                      toast.style.left = '50%';
+                      toast.style.transform = 'translateX(-50%)';
+                      toast.style.backgroundColor = '#ec4899';
+                      toast.style.color = 'white';
+                      toast.style.padding = '8px 16px';
+                      toast.style.borderRadius = '4px';
+                      toast.style.zIndex = '1000';
+                      toast.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                      toast.style.fontWeight = '500';
+                      toast.style.fontSize = '14px';
+                      toast.style.transition = 'opacity 0.3s ease-in-out';
+                      document.body.appendChild(toast);
+                      
+                      // Animate toast
+                      setTimeout(() => {
+                        toast.style.opacity = '0';
+                        setTimeout(() => {
+                          if (document.body.contains(toast)) {
+                            document.body.removeChild(toast);
+                          }
+                        }, 300);
+                      }, 2000);
+                      
+                      // Track download in analytics if available
+                      if (window.posthog) {
+                        window.posthog.capture('download_image', { 
+                          intensity: intensity,
+                          platform: 'farcaster_frame'
+                        });
+                      }
+                      
+                    } catch (error) {
+                      console.error('Error downloading image:', error);
+                      
+                      // Show error toast
+                      const errorToast = document.createElement('div');
+                      errorToast.textContent = 'Download failed. Try again.';
+                      errorToast.style.position = 'fixed';
+                      errorToast.style.bottom = '20px';
+                      errorToast.style.left = '50%';
+                      errorToast.style.transform = 'translateX(-50%)';
+                      errorToast.style.backgroundColor = '#ef4444';
+                      errorToast.style.color = 'white';
+                      errorToast.style.padding = '8px 16px';
+                      errorToast.style.borderRadius = '4px';
+                      errorToast.style.zIndex = '1000';
+                      errorToast.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                      document.body.appendChild(errorToast);
+                      
+                      setTimeout(() => {
+                        if (document.body.contains(errorToast)) {
+                          document.body.removeChild(errorToast);
+                        }
+                      }, 3000);
+                      
+                      // Try alternative download method for mobile
+                      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                        try {
+                          // Open image in new tab as fallback
+                          window.open(canvasRef.current.toDataURL('image/png'), '_blank');
+                        } catch (e) {
+                          console.error('Fallback download failed:', e);
+                        }
+                      }
+                    }
                   }}
                   disabled={!imageLoaded}
-                  className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-colors"
+                  className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-colors flex items-center justify-center gap-2"
+                  aria-label="Download pinkified profile image"
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
                   Download PNG
                 </button>
               </div>
