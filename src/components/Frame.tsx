@@ -6,6 +6,8 @@ import sdk, {
   AddFrame,
   SignIn as SignInCore,
   type Context,
+  type FrameContext,
+  type OembedPhotoData,
 } from "@farcaster/frame-sdk";
 import {
   Card,
@@ -43,7 +45,8 @@ export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [context2d, setContext2d] = useState<CanvasRenderingContext2D>();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<Context>();
+  const [context, setContext] = useState<FrameContext>();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Setup canvas context and resize observer
   useEffect(() => {
@@ -89,64 +92,79 @@ export default function Frame() {
 
   useEffect(() => {
     const load = async () => {
-      const context = await sdk.context;
-      if (!context) {
-        return;
+      try {
+        // Get frame context from SDK
+        const frameContext = await sdk.context;
+        if (!frameContext) {
+          console.error("No frame context available");
+          return;
+        }
+
+        setContext(frameContext);
+        setAdded(frameContext.client.added);
+
+        // Extract profile image URL from frame context if available
+        if (frameContext.user?.pfp?.url) {
+          setProfileImage(frameContext.user.pfp.url);
+          console.log("Profile image URL:", frameContext.user.pfp.url);
+        } else if (frameContext.user?.pfp?.oembedPhotoData) {
+          // Handle oembed photo data format
+          const oembedData = frameContext.user.pfp.oembedPhotoData as OembedPhotoData;
+          if (oembedData.url) {
+            setProfileImage(oembedData.url);
+            console.log("Profile image from oembed:", oembedData.url);
+          }
+        } else {
+          console.log("No profile image found in frame context");
+        }
+
+        // If frame isn't already added, prompt user to add it
+        if (!frameContext.client.added) {
+          addFrame();
+        }
+
+        // Set up event listeners
+        sdk.on("frameAdded", ({ notificationDetails }) => {
+          setAdded(true);
+          console.log("Frame added", notificationDetails);
+        });
+
+        sdk.on("frameAddRejected", ({ reason }) => {
+          console.log("frameAddRejected", reason);
+        });
+
+        sdk.on("frameRemoved", () => {
+          console.log("frameRemoved");
+          setAdded(false);
+        });
+
+        sdk.on("notificationsEnabled", ({ notificationDetails }) => {
+          console.log("notificationsEnabled", notificationDetails);
+        });
+        
+        sdk.on("notificationsDisabled", () => {
+          console.log("notificationsDisabled");
+        });
+
+        // Signal to the Frame SDK that we're ready to display content
+        console.log("Calling ready");
+        sdk.actions.ready({});
+      } catch (error) {
+        console.error("Error initializing Frame SDK:", error);
       }
-
-      setContext(context);
-      setAdded(context.client.added);
-
-      // If frame isn't already added, prompt user to add it
-      if (!context.client.added) {
-        addFrame();
-      }
-
-      sdk.on("frameAdded", ({ notificationDetails }) => {
-        setAdded(true);
-      });
-
-      sdk.on("frameAddRejected", ({ reason }) => {
-        console.log("frameAddRejected", reason);
-      });
-
-      sdk.on("frameRemoved", () => {
-        console.log("frameRemoved");
-        setAdded(false);
-      });
-
-      sdk.on("notificationsEnabled", ({ notificationDetails }) => {
-        console.log("notificationsEnabled", notificationDetails);
-      });
-      sdk.on("notificationsDisabled", () => {
-        console.log("notificationsDisabled");
-      });
-
-      sdk.on("primaryButtonClicked", () => {
-        console.log("primaryButtonClicked");
-      });
-
-      console.log("Calling ready");
-      sdk.actions.ready({});
-
-      // Set up a MIPD Store, and request Providers.
-      const store = createStore();
-
-      // Subscribe to the MIPD Store.
-      store.subscribe((providerDetails) => {
-        console.log("PROVIDER DETAILS", providerDetails);
-        // => [EIP6963ProviderDetail, EIP6963ProviderDetail, ...]
-      });
     };
+    
     if (sdk && !isSDKLoaded) {
-      console.log("Calling load");
+      console.log("Initializing Frame SDK");
       setIsSDKLoaded(true);
       load();
+      
+      // Clean up event listeners when component unmounts
       return () => {
         sdk.removeAllListeners();
       };
     }
-  }, [isSDKLoaded]);
+  }, [isSDKLoaded, addFrame]);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -177,7 +195,16 @@ export default function Frame() {
                 maxHeight: 'min(90vh, 512px)'
               }}
             />
-            <ExampleCard />
+            {profileImage && (
+              <div className="mt-2 text-sm text-center text-gray-500">
+                Profile image loaded from Frame context
+              </div>
+            )}
+            {!isSDKLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
+                <div className="text-lg font-medium">Initializing Frame SDK...</div>
+              </div>
+            )}
           </div>
         </main>
       </div>
