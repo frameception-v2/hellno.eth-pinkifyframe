@@ -380,16 +380,40 @@ export default function Frame() {
                 }}
               />
               {!imageLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
-                  <div className="flex flex-col items-center">
-                    <svg className="animate-spin h-8 w-8 text-pink-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <div className="text-sm font-medium">Loading image...</div>
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg backdrop-blur-sm transition-all duration-300">
+                  <div className="flex flex-col items-center p-4 bg-white/80 rounded-xl shadow-lg animate-fadeIn">
+                    <div className="relative w-12 h-12 mb-3">
+                      <svg className="animate-spin absolute inset-0 h-12 w-12 text-pink-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-6 w-6 rounded-full bg-pink-500 animate-pulse"></div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-pink-700">Loading your image...</div>
+                    <div className="text-xs text-gray-500 mt-1 animate-pulse">Please wait a moment</div>
                   </div>
                 </div>
               )}
+              
+              <style jsx global>{`
+                @keyframes fadeIn {
+                  from { opacity: 0; transform: scale(0.9); }
+                  to { opacity: 1; transform: scale(1); }
+                }
+                .animate-fadeIn {
+                  animation: fadeIn 0.3s ease-out forwards;
+                }
+                @keyframes pulse {
+                  0% { transform: scale(0.95); opacity: 0.7; }
+                  50% { transform: scale(1.05); opacity: 0.9; }
+                  100% { transform: scale(0.95); opacity: 0.7; }
+                }
+                .animate-pulse {
+                  animation: pulse 1.5s infinite;
+                }
+              `}</style>
             </div>
             
             {profileImage && (
@@ -473,7 +497,7 @@ export default function Frame() {
                       cursor: pointer;
                       border: 2px solid white;
                       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                      transition: transform 0.1s;
+                      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
                     }
                     
                     input[type=range]::-moz-range-thumb {
@@ -484,15 +508,38 @@ export default function Frame() {
                       cursor: pointer;
                       border: 2px solid white;
                       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                      transition: transform 0.1s;
+                      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+                    }
+                    
+                    input[type=range]:hover::-webkit-slider-thumb {
+                      box-shadow: 0 0 0 8px rgba(236, 72, 153, 0.2);
+                    }
+                    
+                    input[type=range]:hover::-moz-range-thumb {
+                      box-shadow: 0 0 0 8px rgba(236, 72, 153, 0.2);
                     }
                     
                     input[type=range]:active::-webkit-slider-thumb {
-                      transform: scale(1.2);
+                      transform: scale(1.3);
+                      box-shadow: 0 0 0 12px rgba(236, 72, 153, 0.3);
                     }
                     
                     input[type=range]:active::-moz-range-thumb {
-                      transform: scale(1.2);
+                      transform: scale(1.3);
+                      box-shadow: 0 0 0 12px rgba(236, 72, 153, 0.3);
+                    }
+                    
+                    /* Slider track animations */
+                    input[type=range] {
+                      transition: all 0.2s ease;
+                    }
+                    
+                    input[type=range]:hover {
+                      opacity: 1;
+                    }
+                    
+                    input[type=range]:active {
+                      height: 4px;
                     }
                   `}</style>
                 </div>
@@ -526,27 +573,44 @@ export default function Frame() {
                         window.URL.revokeObjectURL(dataUrl);
                       }, 100);
                       
-                      // Show feedback toast for mobile users
+                      // Show animated feedback toast for mobile users
                       const toast = document.createElement('div');
                       toast.textContent = 'Image downloaded!';
                       toast.style.position = 'fixed';
                       toast.style.bottom = '20px';
                       toast.style.left = '50%';
-                      toast.style.transform = 'translateX(-50%)';
+                      toast.style.transform = 'translateX(-50%) translateY(20px)';
                       toast.style.backgroundColor = '#ec4899';
                       toast.style.color = 'white';
-                      toast.style.padding = '8px 16px';
-                      toast.style.borderRadius = '4px';
+                      toast.style.padding = '10px 20px';
+                      toast.style.borderRadius = '8px';
                       toast.style.zIndex = '1000';
-                      toast.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-                      toast.style.fontWeight = '500';
+                      toast.style.boxShadow = '0 4px 12px rgba(236, 72, 153, 0.3)';
+                      toast.style.fontWeight = '600';
                       toast.style.fontSize = '14px';
-                      toast.style.transition = 'opacity 0.3s ease-in-out';
+                      toast.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                      toast.style.opacity = '0';
+                      toast.style.display = 'flex';
+                      toast.style.alignItems = 'center';
+                      toast.style.gap = '8px';
+                      
+                      // Add success icon to toast
+                      const checkIcon = document.createElement('span');
+                      checkIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                      toast.insertBefore(checkIcon, toast.firstChild);
+                      
                       document.body.appendChild(toast);
                       
-                      // Animate toast
+                      // Animate toast in
+                      requestAnimationFrame(() => {
+                        toast.style.opacity = '1';
+                        toast.style.transform = 'translateX(-50%) translateY(0)';
+                      });
+                      
+                      // Animate toast out
                       setTimeout(() => {
                         toast.style.opacity = '0';
+                        toast.style.transform = 'translateX(-50%) translateY(-20px)';
                         setTimeout(() => {
                           if (document.body.contains(toast)) {
                             document.body.removeChild(toast);
@@ -569,26 +633,70 @@ export default function Frame() {
                     } catch (error) {
                       console.error('Error downloading image:', error);
                       
-                      // Show error toast
+                      // Show animated error toast
                       const errorToast = document.createElement('div');
                       errorToast.textContent = 'Download failed. Try again.';
                       errorToast.style.position = 'fixed';
                       errorToast.style.bottom = '20px';
                       errorToast.style.left = '50%';
-                      errorToast.style.transform = 'translateX(-50%)';
+                      errorToast.style.transform = 'translateX(-50%) translateY(20px)';
                       errorToast.style.backgroundColor = '#ef4444';
                       errorToast.style.color = 'white';
-                      errorToast.style.padding = '8px 16px';
-                      errorToast.style.borderRadius = '4px';
+                      errorToast.style.padding = '10px 20px';
+                      errorToast.style.borderRadius = '8px';
                       errorToast.style.zIndex = '1000';
-                      errorToast.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                      errorToast.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
+                      errorToast.style.fontWeight = '600';
+                      errorToast.style.fontSize = '14px';
+                      errorToast.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                      errorToast.style.opacity = '0';
+                      errorToast.style.display = 'flex';
+                      errorToast.style.alignItems = 'center';
+                      errorToast.style.gap = '8px';
+                      
+                      // Add error icon to toast
+                      const errorIcon = document.createElement('span');
+                      errorIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+                      errorToast.insertBefore(errorIcon, errorToast.firstChild);
+                      
                       document.body.appendChild(errorToast);
                       
+                      // Animate error toast in
+                      requestAnimationFrame(() => {
+                        errorToast.style.opacity = '1';
+                        errorToast.style.transform = 'translateX(-50%) translateY(0)';
+                      });
+                      
+                      // Animate error toast out with shake effect
                       setTimeout(() => {
-                        if (document.body.contains(errorToast)) {
-                          document.body.removeChild(errorToast);
-                        }
-                      }, 3000);
+                        errorToast.style.animation = 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both';
+                        errorToast.style.transform = 'translateX(-50%) translateY(0)';
+                        
+                        // Add shake keyframes
+                        const style = document.createElement('style');
+                        style.innerHTML = `
+                          @keyframes shake {
+                            10%, 90% { transform: translateX(-51%) translateY(0); }
+                            20%, 80% { transform: translateX(-49%) translateY(0); }
+                            30%, 50%, 70% { transform: translateX(-52%) translateY(0); }
+                            40%, 60% { transform: translateX(-48%) translateY(0); }
+                          }
+                        `;
+                        document.head.appendChild(style);
+                        
+                        setTimeout(() => {
+                          errorToast.style.opacity = '0';
+                          errorToast.style.transform = 'translateX(-50%) translateY(-20px)';
+                          setTimeout(() => {
+                            if (document.body.contains(errorToast)) {
+                              document.body.removeChild(errorToast);
+                            }
+                            if (document.head.contains(style)) {
+                              document.head.removeChild(style);
+                            }
+                          }, 300);
+                        }, 1000);
+                      }, 2000);
                       
                       // Try alternative download method for mobile
                       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
@@ -602,7 +710,7 @@ export default function Frame() {
                     }
                   }}
                   disabled={!imageLoaded}
-                  className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-colors flex items-center justify-center gap-2"
+                  className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                   aria-label="Download pinkified profile image"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download">
