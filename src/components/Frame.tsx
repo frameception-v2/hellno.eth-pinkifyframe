@@ -40,8 +40,32 @@ function ExampleCard() {
 }
 
 export default function Frame() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [context2d, setContext2d] = useState<CanvasRenderingContext2D>();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
+
+  // Setup canvas context and resize observer
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    setContext2d(ctx);
+    ctx.imageSmoothingEnabled = true;
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      if (!entry) return;
+      const { width } = entry.contentRect;
+      canvas.width = width;
+      canvas.height = width; // Maintain 1:1 aspect ratio
+    });
+
+    resizeObserver.observe(canvas.parentElement!);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const [added, setAdded] = useState(false);
 
@@ -144,7 +168,15 @@ export default function Frame() {
         }}
       >
         <main className="grid place-items-center px-4 py-8">
-          <div className="w-full max-w-[512px] mx-auto">
+          <div className="w-full max-w-[512px] mx-auto relative">
+            <canvas
+              ref={canvasRef}
+              className="w-full h-auto max-h-[512px] aspect-square bg-neutral-100 rounded-lg"
+              style={{
+                maxWidth: 'min(90vw, 512px)',
+                maxHeight: 'min(90vh, 512px)'
+              }}
+            />
             <ExampleCard />
           </div>
         </main>
