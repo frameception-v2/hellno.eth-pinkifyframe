@@ -305,14 +305,18 @@ export default function Frame() {
   // Check URL parameters for intensity value
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const intensityParam = params.get('intensity');
-      if (intensityParam) {
-        const intensityValue = parseInt(intensityParam, 10);
-        if (!isNaN(intensityValue) && intensityValue >= 0 && intensityValue <= 100) {
-          setIntensity(intensityValue);
-          localStorage.setItem('pinkify-intensity', intensityValue.toString());
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const intensityParam = params.get('intensity');
+        if (intensityParam) {
+          const intensityValue = parseInt(intensityParam, 10);
+          if (!isNaN(intensityValue) && intensityValue >= 0 && intensityValue <= 100) {
+            setIntensity(intensityValue);
+            localStorage.setItem('pinkify-intensity', intensityValue.toString());
+          }
         }
+      } catch (error) {
+        console.error("Error parsing URL parameters:", error);
       }
     }
   }, []);
@@ -526,7 +530,8 @@ export default function Frame() {
                       }, 2000);
                       
                       // Track download in analytics if available
-                      if (window.posthog) {
+                      if (typeof window !== 'undefined' && 'posthog' in window && window.posthog) {
+                        // @ts-ignore - PostHog might not be typed
                         window.posthog.capture('download_image', { 
                           intensity: intensity,
                           platform: 'farcaster_frame'

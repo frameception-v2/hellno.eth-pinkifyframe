@@ -1,6 +1,7 @@
+import { Metadata } from "next";
 import { PROJECT_TITLE, PROJECT_DESCRIPTION } from "~/lib/constants";
 
-export function generateFrameMetadata(baseUrl: string) {
+export function generateFrameMetadata(baseUrl: string): Metadata {
   const imageUrl = `${baseUrl}/opengraph-image`;
   
   return {

@@ -5,17 +5,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     // Parse the request body
     const body = await req.json();
     
-    // For now, just return a simple success response
-    // In a real implementation, you would validate the frame message
-    // and handle the interaction accordingly
+    // Extract intensity from input if available
+    let intensity = 50; // Default value
+    if (body.inputText) {
+      const inputValue = parseInt(body.inputText, 10);
+      if (!isNaN(inputValue) && inputValue >= 0 && inputValue <= 100) {
+        intensity = inputValue;
+      }
+    }
     
-    // Construct the redirect URL
-    const baseUrl = process.env.NEXT_PUBLIC_URL || `https://${process.env.VERCEL_URL || 'localhost:3000'}`;
-    const redirectUrl = `${baseUrl}/pinkify`;
+    // Construct the redirect URL with intensity parameter
+    const baseUrl = process.env.NEXT_PUBLIC_URL || `https://${process.env.VERCEL_URL || req.nextUrl.origin}`;
+    const redirectUrl = `${baseUrl}/pinkify?intensity=${intensity}`;
 
     // Return a redirect response
     return NextResponse.json({
-      frameUrl: redirectUrl
+      location: redirectUrl
     });
   } catch (error) {
     console.error("Error processing frame request:", error);

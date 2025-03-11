@@ -15,16 +15,16 @@ async function loadFont(fontPath: string): Promise<Buffer> {
     // Fallback to loading from absolute path
     try {
       const absolutePath = join(
-        __dirname,
-        "..",
-        "..",
+        process.cwd(),
         "public",
         "fonts",
-        fontPath.split("/").pop()!
+        fontPath.split("/").pop() || ""
       );
       return readFileSync(absolutePath);
     } catch (fallbackError) {
-      throw new Error(`Failed to load font ${fontPath}: ${error}`);
+      console.error(`Failed to load font ${fontPath}:`, error);
+      // Return an empty buffer as last resort
+      return Buffer.from([]);
     }
   }
 }
