@@ -314,24 +314,63 @@ export default function Frame() {
             <div className="mt-4 flex flex-col gap-3 w-full max-w-[512px]">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium min-w-16">Pink Intensity</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={intensity}
-                  onChange={(e) => {
-                    const newValue = parseInt(e.target.value, 10);
-                    setIntensity(newValue);
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem('pinkify-intensity', newValue.toString());
+                <div className="relative w-full">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={intensity}
+                    onChange={(e) => {
+                      const newValue = parseInt(e.target.value, 10);
+                      setIntensity(newValue);
+                      if (typeof window !== 'undefined') {
+                        localStorage.setItem('pinkify-intensity', newValue.toString());
+                      }
+                    }}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer touch-manipulation"
+                    style={{
+                      background: `linear-gradient(to right, #ffc0cb ${intensity}%, #f3f4f6 ${intensity}%)`,
+                      touchAction: 'none', // Prevent scrolling when using the slider
+                      // Custom thumb styling for better touch targets
+                      WebkitAppearance: 'none',
+                      appearance: 'none',
+                    }}
+                  />
+                  {/* Custom thumb styling with larger touch target */}
+                  <style jsx>{`
+                    input[type=range]::-webkit-slider-thumb {
+                      -webkit-appearance: none;
+                      appearance: none;
+                      width: 24px;
+                      height: 24px;
+                      border-radius: 50%;
+                      background: #ec4899;
+                      cursor: pointer;
+                      border: 2px solid white;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                      transition: transform 0.1s;
                     }
-                  }}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #ffc0cb ${intensity}%, #f3f4f6 ${intensity}%)`,
-                    touchAction: 'none', // Prevent scrolling when using the slider
-                  }}
-                />
+                    
+                    input[type=range]::-moz-range-thumb {
+                      width: 24px;
+                      height: 24px;
+                      border-radius: 50%;
+                      background: #ec4899;
+                      cursor: pointer;
+                      border: 2px solid white;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                      transition: transform 0.1s;
+                    }
+                    
+                    input[type=range]:active::-webkit-slider-thumb {
+                      transform: scale(1.2);
+                    }
+                    
+                    input[type=range]:active::-moz-range-thumb {
+                      transform: scale(1.2);
+                    }
+                  `}</style>
+                </div>
                 <span className="text-sm min-w-8">{intensity}%</span>
               </div>
               
