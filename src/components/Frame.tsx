@@ -5,7 +5,7 @@ import sdk, {
   AddFrame,
 } from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
-import { FrameContext } from "@farcaster/frame-node";
+import type { FrameContext } from "@farcaster/frame-node";
 
 export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,6 +16,8 @@ export default function Frame() {
   const [intensity, setIntensity] = useState<number>(50); // Default intensity
   const [imageLoaded, setImageLoaded] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [added, setAdded] = useState(false);
+  const [addFrameResult, setAddFrameResult] = useState("");
 
   // Function to apply pink filter to the image
   const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
@@ -77,8 +79,8 @@ export default function Frame() {
       return () => {
         resizeObserver.disconnect();
         if (sliderElement) {
-          sliderElement.removeEventListener('touchstart', emptyHandler, false);
-          sliderElement.removeEventListener('touchmove', emptyHandler, false);
+          sliderElement.removeEventListener('touchstart', emptyHandler);
+          sliderElement.removeEventListener('touchmove', emptyHandler);
         }
       };
     }
@@ -149,9 +151,6 @@ export default function Frame() {
     
     img.src = profileImage;
   }, [intensity, applyPinkFilter, profileImage, imageLoaded]);
-
-  const [added, setAdded] = useState(false);
-  const [addFrameResult, setAddFrameResult] = useState("");
 
   const addFrame = useCallback(async () => {
     if (typeof window === 'undefined') return;
@@ -345,14 +344,10 @@ export default function Frame() {
       <div 
         className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
         style={{
-          // @ts-expect-error any
-          paddingTop: context?.client.safeAreaInsets?.top ?? 0,
-          // @ts-expect-error any
-          paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0,
-          // @ts-expect-error any
-          paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
-          // @ts-expect-error any
-          paddingRight: context?.client.safeAreaInsets?.right ?? 0,
+          paddingTop: context?.client?.safeAreaInsets?.top ?? 0,
+          paddingBottom: context?.client?.safeAreaInsets?.bottom ?? 0,
+          paddingLeft: context?.client?.safeAreaInsets?.left ?? 0,
+          paddingRight: context?.client?.safeAreaInsets?.right ?? 0,
           height: '100dvh', // Use dynamic viewport height
           maxHeight: '100dvh' // Ensure content doesn't overflow
         }}
@@ -612,7 +607,7 @@ export default function Frame() {
                       toast.style.boxShadow = '0 4px 12px rgba(236, 72, 153, 0.3)';
                       toast.style.fontWeight = '600';
                       toast.style.fontSize = '14px';
-                      toast.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                      toast.style.transition =  'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                       toast.style.opacity = '0';
                       toast.style.display = 'flex';
                       toast.style.alignItems = 'center';
