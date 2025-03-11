@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useCallback, useState, useRef } from "react";
-import Head from "next/head";
 import sdk, {
   AddFrame,
   SignIn as SignInCore,
@@ -47,7 +46,41 @@ export default function Frame() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext>();
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [intensity, setIntensity] = useState<number>(() => {
+    // Try to load from localStorage if available
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('pinkify-intensity');
+      return saved ? parseInt(saved, 10) : 50;
+    }
+    return 50; // Default intensity
+  });
+  const [imageLoaded, setImageLoaded] = useState(false);
 
+  // Function to apply pink filter to the image
+  const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
+    if (!context2d || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = context2d;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw original image
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    
+    // Apply pink overlay with intensity
+    const alpha = intensity / 100;
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = `rgba(255, 192, 203, ${alpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Reset composite operation
+    ctx.globalCompositeOperation = 'source-over';
+    
+    setImageLoaded(true);
+  }, [context2d]);
+  
   // Setup canvas context and resize observer
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -69,6 +102,46 @@ export default function Frame() {
     resizeObserver.observe(canvas.parentElement!);
     return () => resizeObserver.disconnect();
   }, []);
+  
+  // Load and process profile image when URL changes
+  useEffect(() => {
+    if (!profileImage || !context2d || !canvasRef.current) return;
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      applyPinkFilter(img, intensity);
+    };
+    
+    img.onerror = (e) => {
+      console.error('Error loading image:', e);
+      setImageLoaded(false);
+      
+      // Load fallback image
+      const fallbackImg = new Image();
+      fallbackImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
+      fallbackImg.onload = () => {
+        applyPinkFilter(fallbackImg, intensity);
+      };
+    };
+    
+    img.src = profileImage;
+  }, [profileImage, context2d, applyPinkFilter, intensity]);
+  
+  // Update filter when intensity changes
+  useEffect(() => {
+    if (!profileImage || !imageLoaded) return;
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      applyPinkFilter(img, intensity);
+    };
+    
+    img.src = profileImage;
+  }, [intensity, applyPinkFilter, profileImage, imageLoaded]);
 
   const [added, setAdded] = useState(false);
 
@@ -172,9 +245,6 @@ export default function Frame() {
 
   return (
     <>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-      </Head>
       <div 
         className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
         style={{
@@ -205,6 +275,47 @@ export default function Frame() {
                 <div className="text-lg font-medium">Initializing Frame SDK...</div>
               </div>
             )}
+            <div className="mt-4 flex flex-col gap-3 w-full max-w-[512px]">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium min-w-16">Pink Intensity</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={intensity}
+                  onChange={(e) => {
+                    const newValue = parseInt(e.target.value, 10);
+                    setIntensity(newValue);
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('pinkify-intensity', newValue.toString());
+                    }
+                  }}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #ffc0cb ${intensity}%, #f3f4f6 ${intensity}%)`,
+                  }}
+                />
+                <span className="text-sm min-w-8">{intensity}%</span>
+              </div>
+              
+              <button
+                onClick={() => {
+                  if (!canvasRef.current) return;
+                  
+                  // Create download link
+                  const link = document.createElement('a');
+                  link.download = `pinkified-profile-${Date.now()}.png`;
+                  link.href = canvasRef.current.toDataURL('image/png');
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                }}
+                disabled={!imageLoaded}
+                className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Download PNG
+              </button>
+            </div>
           </div>
         </main>
       </div>

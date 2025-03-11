@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import App from "./app";
+import Frame from "~/components/Frame";
 import { PROJECT_TITLE, PROJECT_DESCRIPTION } from "~/lib/constants";
 
 const appUrl =
@@ -10,13 +10,13 @@ const frame = {
   version: "next",
   imageUrl: `${appUrl}/opengraph-image`,
   button: {
-    title: "Launch Frame",
+    title: "Pinkify My Profile",
     action: {
       type: "launch_frame",
       name: PROJECT_TITLE,
       url: appUrl,
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#f7f7f7",
+      splashBackgroundColor: "#fdf2f8",
     },
   },
 };
@@ -38,5 +38,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function Home() {
-  return <App />;
+  return <Frame />;
 }

@@ -35,6 +35,7 @@ export const metadata: Metadata = {
       "en-US": "/en-US",
     },
   },
+  viewport: "width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover",
 };
 
 export default async function RootLayout({
