@@ -128,17 +128,26 @@ export default function Frame() {
   }
 
   return (
-    <div
-      style={{
-        paddingTop: context?.client.safeAreaInsets?.top ?? 0,
-        paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0,
-        paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
-        paddingRight: context?.client.safeAreaInsets?.right ?? 0,
-      }}
-    >
-      <div className="w-[300px] mx-auto py-2 px-2">
-        <ExampleCard />
+    <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+      </Head>
+      <div 
+        className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
+        style={{
+          paddingTop: context?.client.safeAreaInsets?.top ?? 0,
+          paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0,
+          paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
+          paddingRight: context?.client.safeAreaInsets?.right ?? 0,
+          height: '100dvh' // Use dynamic viewport height
+        }}
+      >
+        <main className="grid place-items-center px-4 py-8">
+          <div className="w-full max-w-[512px] mx-auto">
+            <ExampleCard />
+          </div>
+        </main>
       </div>
-    </div>
+    </>
   );
 }
