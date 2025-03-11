@@ -213,24 +213,6 @@ export default function Frame() {
           loadFallbackProfileImage();
           return;
         }
-        
-        // Apply CORS proxy if needed for cross-origin images
-        try {
-          const urlObj = new URL(imageUrl);
-          const isExternalDomain = urlObj.origin !== window.location.origin;
-          
-          if (isExternalDomain) {
-            // Use a CORS proxy for external images
-            const corsProxyUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
-            setProfileImage(corsProxyUrl);
-            console.log("Using CORS proxy for image:", corsProxyUrl);
-          } else {
-            setProfileImage(imageUrl);
-          }
-        } catch (error) {
-          console.error("Error processing image URL:", error);
-          loadFallbackProfileImage();
-        }
 
         // If frame isn't already added, prompt user to add it
         if (!frameContext.client.added) {
