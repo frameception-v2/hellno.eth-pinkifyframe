@@ -45,6 +45,8 @@ export default function Frame() {
   
   // Setup canvas context and resize observer
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -87,6 +89,7 @@ export default function Frame() {
   
   // Load and process profile image when URL changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!profileImage || !context2d || !canvasRef.current) return;
     
     const img = new Image();
@@ -135,6 +138,7 @@ export default function Frame() {
   
   // Update filter when intensity changes
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     if (!profileImage || !imageLoaded) return;
     
     const img = new Image();
@@ -151,6 +155,7 @@ export default function Frame() {
   const [addFrameResult, setAddFrameResult] = useState("");
 
   const addFrame = useCallback(async () => {
+    if (typeof window === 'undefined') return;
     try {
       await sdk.actions.addFrame();
     } catch (error) {
@@ -165,6 +170,8 @@ export default function Frame() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const loadFallbackProfileImage = () => {
       const fallbackImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZTRlNiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSI1MCIgZmlsbD0iI2ZiZDVkYiIvPjxyZWN0IHg9IjY1IiB5PSIxNDAiIHdpZHRoPSI3MCIgaGVpZ2h0PSIzMCIgcng9IjE1IiBmaWxsPSIjZmJkNWRiIi8+PHRleHQgeD0iNTAlIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2VjNDg5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGlua2lmeSBQcm9maWxlPC90ZXh0Pjwvc3ZnPg==';
       setProfileImage(fallbackImageUrl);
@@ -299,6 +306,8 @@ export default function Frame() {
 
   // Sync with localStorage and URL parameters on mount
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     // This ensures the code only runs on the client side
     const syncIntensity = () => {
       try {
@@ -325,7 +334,7 @@ export default function Frame() {
             console.log(`Intensity restored from localStorage: ${savedValue}%`);
           }
         }
-      } catch (error) {
+      } catch (error)  {
         console.error("Error syncing intensity value:", error);
         // Fallback to default value if there's an error
         setIntensity(50);
@@ -333,12 +342,10 @@ export default function Frame() {
     };
 
     // Only run in browser environment
-    if (typeof window !== 'undefined') {
-      syncIntensity();
-    }
+    syncIntensity();
     
     // Add responsive testing listener for development
-    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    if (process.env.NODE_ENV ===  'development') {
       const updateDimensions = () => {
         const dimensionDisplay = document.getElementById('responsive-dimensions');
         if (dimensionDisplay) {
@@ -357,14 +364,18 @@ export default function Frame() {
   
   // Sync to localStorage whenever intensity changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem('pinkify-intensity', intensity.toString());
-      } catch (error) {
-        console.error("Error saving to localStorage:", error);
-      }
+    if (typeof window === 'undefined') return;
+    
+    try {
+      localStorage.setItem('pinkify-intensity', intensity.toString());
+    } catch (error) {
+      console.error("Error saving to localStorage:", error);
     }
   }, [intensity]);
+
+  if (typeof window === 'undefined') {
+    return null; // Return null during SSR
+  }
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;

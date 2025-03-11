@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       frames: {
         version: 'vNext',
-        image: `${baseUrl}/opengraph-image`,
+        image: `${baseUrl}/api/og`,
         buttons: [
           {
             label: 'Adjust Pink Filter',

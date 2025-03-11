@@ -1,6 +1,6 @@
-import Frame from "~/components/Frame";
-import { generateFrameMetadata } from "./frame-metadata";
 import { Metadata } from "next";
+import { generateFrameMetadata } from "./frame-metadata";
+import Frame from "~/components/Frame";
 
 export async function generateMetadata(): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_URL || 
@@ -9,5 +9,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function PinkifyPage() {
-  return <Frame />;
+  return (
+    <>
+      <Frame />
+    </>
+  );
 }
