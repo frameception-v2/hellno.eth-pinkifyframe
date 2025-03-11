@@ -4,7 +4,16 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-import sdk from "@farcaster/frame-sdk";
+
+// Safely import Frame SDK only on client side
+let sdk: any;
+if (typeof window !== 'undefined') {
+  try {
+    sdk = require("@farcaster/frame-sdk").default;
+  } catch (e) {
+    console.warn('Frame SDK not available:', e);
+  }
+}
 
 // Conditionally import PostHog to prevent build errors
 let posthog: any;
@@ -70,6 +79,11 @@ export function Providers({
 
   useEffect(() => {
     const load = async () => {
+      if (!sdk) {
+        console.warn('Frame SDK not available');
+        return;
+      }
+      
       try {
         const frameContext = await sdk.context;
         if (!frameContext) {
@@ -82,11 +96,13 @@ export function Providers({
       }
     };
     
-    if (sdk && !isSDKLoaded) {
+    if (typeof window !== 'undefined' && sdk && !isSDKLoaded) {
       load();
       setIsSDKLoaded(true);
       return () => {
-        sdk.removeAllListeners();
+        if (sdk && sdk.removeAllListeners) {
+          sdk.removeAllListeners();
+        }
       };
     }
   }, [isSDKLoaded]);

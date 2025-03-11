@@ -22,9 +22,18 @@ const nextConfig = {
     ],
   },
   experimental: {
-    serverActions: {
-      allowedOrigins: ['localhost:3000', '*.vercel.app'],
-    },
+    serverActions: true,
+  },
+  webpack: (config) => {
+    // Handle the Frame SDK package which may cause issues during build
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+    
+    return config;
   },
 };
 
