@@ -7,7 +7,7 @@ export const alt = PROJECT_TITLE;
 export const contentType = "image/png";
 
 // Function to load font with error handling
-async function loadFont(fontPath: string): Promise<ArrayBuffer> {
+async function loadFont(fontPath: string) {
   try {
     const fontData = fs.readFileSync(fontPath);
     return fontData;

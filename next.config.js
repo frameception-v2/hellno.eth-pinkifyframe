@@ -21,9 +21,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverActions: true,
-  },
   webpack: (config) => {
     // Handle the Frame SDK package which may cause issues during build
     config.resolve.fallback = {

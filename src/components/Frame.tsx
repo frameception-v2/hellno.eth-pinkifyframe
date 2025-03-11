@@ -3,10 +3,9 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import sdk, {
   AddFrame,
-  type FrameContext,
-  type FrameActionPayload,
 } from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
+import { FrameContext } from "@farcaster/frame-node";
 
 export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -78,8 +77,8 @@ export default function Frame() {
       return () => {
         resizeObserver.disconnect();
         if (sliderElement) {
-          sliderElement.removeEventListener('touchstart', emptyHandler, options);
-          sliderElement.removeEventListener('touchmove', emptyHandler, options);
+          sliderElement.removeEventListener('touchstart', emptyHandler, false);
+          sliderElement.removeEventListener('touchmove', emptyHandler, false);
         }
       };
     }
@@ -181,7 +180,7 @@ export default function Frame() {
     const load = async () => {
       try {
         // Get frame context from SDK
-        const frameContext = await sdk?.context;
+        const frameContext = await sdk?.context as FrameContext;
         if (!frameContext) {
           console.error("No frame context available");
           // Load fallback image if no context is available
@@ -192,29 +191,7 @@ export default function Frame() {
         setContext(frameContext);
         setAdded(frameContext.client.added);
 
-        // Extract profile image URL from frame context if available
-        let imageUrl = null;
-        
-        // Validate frame context data with proper type checking
-        if (frameContext.user) {
-          if (frameContext.user.pfp) {
-            if (typeof frameContext.user.pfp === 'object') {
-              if ('url' in frameContext.user.pfp && typeof frameContext.user.pfp.url === 'string') {
-                imageUrl = frameContext.user.pfp.url;
-                console.log("Profile image URL:", imageUrl);
-              } else if ('oembedPhotoData' in frameContext.user.pfp && 
-                         frameContext.user.pfp.oembedPhotoData && 
-                         typeof frameContext.user.pfp.oembedPhotoData === 'object') {
-                // Handle oembed photo data format
-                const oembedData = frameContext.user.pfp.oembedPhotoData;
-                if ('url' in oembedData && typeof oembedData.url === 'string') {
-                  imageUrl = oembedData.url;
-                  console.log("Profile image from oembed:", imageUrl);
-                }
-              }
-            }
-          }
-        }
+        const imageUrl = frameContext.user.pfpUrl;
         
         if (!imageUrl) {
           console.log("No valid profile image found in frame context");
@@ -261,26 +238,12 @@ export default function Frame() {
         }
 
         // Set up event listeners with proper type safety
-        sdk.on("frameAdded", (payload: FrameActionPayload) => {
+        sdk.on("frameAdded", () => {
           setAdded(true);
-          console.log("Frame added", payload.notificationDetails);
-        });
-
-        sdk.on("frameAddRejected", (payload: { reason: string }) => {
-          console.log("frameAddRejected", payload.reason);
         });
 
         sdk.on("frameRemoved", () => {
-          console.log("frameRemoved");
           setAdded(false);
-        });
-
-        sdk.on("notificationsEnabled", (payload: FrameActionPayload) => {
-          console.log("notificationsEnabled", payload.notificationDetails);
-        });
-        
-        sdk.on("notificationsDisabled", () => {
-          console.log("notificationsDisabled");
         });
 
         // Signal to the Frame SDK that we're ready to display content
@@ -386,9 +349,13 @@ export default function Frame() {
       <div 
         className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
         style={{
+          // @ts-expect-error any
           paddingTop: context?.client.safeAreaInsets?.top ?? 0,
+          // @ts-expect-error any
           paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0,
+          // @ts-expect-error any
           paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
+          // @ts-expect-error any
           paddingRight: context?.client.safeAreaInsets?.right ?? 0,
           height: '100dvh', // Use dynamic viewport height
           maxHeight: '100dvh' // Ensure content doesn't overflow
@@ -482,7 +449,7 @@ export default function Frame() {
                   <div>
                     <p className="font-medium">Waiting for profile image</p>
                     <p className="mt-1 text-xs text-pink-600">
-                      Make sure you're viewing this frame from a Farcaster client that provides profile data
+                      Make sure you&apos;re viewing this frame from a Farcaster client that provides profile data
                     </p>
                   </div>
                 </div>
@@ -601,63 +568,7 @@ export default function Frame() {
                       appearance: 'none',
                     }}
                   />
-                  {/* Custom thumb styling with larger touch target */}
-                  <style jsx>{`
-                    input[type=range]::-webkit-slider-thumb {
-                      -webkit-appearance: none;
-                      appearance: none;
-                      width: 24px;
-                      height: 24px;
-                      border-radius: 50%;
-                      background: #ec4899;
-                      cursor: pointer;
-                      border: 2px solid white;
-                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
-                    }
-                    
-                    input[type=range]::-moz-range-thumb {
-                      width: 24px;
-                      height: 24px;
-                      border-radius: 50%;
-                      background: #ec4899;
-                      cursor: pointer;
-                      border: 2px solid white;
-                      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
-                    }
-                    
-                    input[type=range]:hover::-webkit-slider-thumb {
-                      box-shadow: 0 0 0 8px rgba(236, 72, 153, 0.2);
-                    }
-                    
-                    input[type=range]:hover::-moz-range-thumb {
-                      box-shadow: 0 0 0 8px rgba(236, 72, 153, 0.2);
-                    }
-                    
-                    input[type=range]:active::-webkit-slider-thumb {
-                      transform: scale(1.3);
-                      box-shadow: 0 0 0 12px rgba(236, 72, 153, 0.3);
-                    }
-                    
-                    input[type=range]:active::-moz-range-thumb {
-                      transform: scale(1.3);
-                      box-shadow: 0 0 0 12px rgba(236, 72, 153, 0.3);
-                    }
-                    
-                    /* Slider track animations */
-                    input[type=range] {
-                      transition: all 0.2s ease;
-                    }
-                    
-                    input[type=range]:hover {
-                      opacity: 1;
-                    }
-                    
-                    input[type=range]:active {
-                      height: 4px;
-                    }
-                  `}</style>
+                 
                 </div>
                 <span className="text-sm min-w-8 slider-value">{intensity}%</span>
               </div>
