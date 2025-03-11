@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
+export async function POST(req: NextRequest) {
   try {
     // Parse the request body
-    const body = await req.json();
+    const formData = await req.formData();
+    const inputText = formData.get('inputText')?.toString() || '50';
     
     // Extract intensity from input if available
     let intensity = 50; // Default value
-    if (body.inputText) {
-      const inputValue = parseInt(body.inputText, 10);
+    if (inputText) {
+      const inputValue = parseInt(inputText, 10);
       if (!isNaN(inputValue) && inputValue >= 0 && inputValue <= 100) {
         intensity = inputValue;
       }
@@ -20,7 +21,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Return a redirect response
     return NextResponse.json({
-      location: redirectUrl
+      frames: {
+        version: 'vNext',
+        image: `${baseUrl}/opengraph-image`,
+        buttons: [
+          {
+            label: 'Adjust Pink Filter',
+            action: 'post_redirect'
+          }
+        ],
+        postUrl: redirectUrl
+      }
     });
   } catch (error) {
     console.error("Error processing frame request:", error);

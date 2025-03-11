@@ -16,6 +16,7 @@ export default function Frame() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [intensity, setIntensity] = useState<number>(50); // Default intensity
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
 
   // Function to apply pink filter to the image
   const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
