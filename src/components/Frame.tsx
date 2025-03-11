@@ -329,6 +329,7 @@ export default function Frame() {
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   style={{
                     background: `linear-gradient(to right, #ffc0cb ${intensity}%, #f3f4f6 ${intensity}%)`,
+                    touchAction: 'none', // Prevent scrolling when using the slider
                   }}
                 />
                 <span className="text-sm min-w-8">{intensity}%</span>
