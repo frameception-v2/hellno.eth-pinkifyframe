@@ -2,13 +2,27 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['i.imgur.com', 'imgur.com', 'pbs.twimg.com', 'abs.twimg.com'],
+    domains: [
+      'i.imgur.com', 
+      'imgur.com', 
+      'pbs.twimg.com', 
+      'abs.twimg.com',
+      'corsproxy.io',
+      'api.allorigins.win',
+      'res.cloudinary.com',
+      'ipfs.decentralized-content.com',
+      'warpcast.com',
+      'i.seadn.io'
+    ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: '**',
       },
     ],
+  },
+  experimental: {
+    serverActions: true,
   },
 };
 

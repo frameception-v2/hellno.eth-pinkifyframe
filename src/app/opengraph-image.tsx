@@ -70,7 +70,17 @@ async function initializeFonts() {
 }
 
 export default async function Image() {
-  const options = await initializeFonts();
+  let options;
+  try {
+    options = await initializeFonts();
+  } catch (error) {
+    console.error("Failed to initialize fonts:", error);
+    // Fallback to basic options without custom fonts
+    options = {
+      width: 1200,
+      height: 800,
+    };
+  }
 
   const BACKGROUND_GRADIENT_START = "#ff80bf";
   const BACKGROUND_GRADIENT_END = "#ec4899";

@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState, useRef } from "react";
 import sdk, {
   AddFrame,
   type FrameContext,
+  type FrameActionPayload,
 } from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
 
@@ -258,14 +259,14 @@ export default function Frame() {
           addFrame();
         }
 
-        // Set up event listeners
-        sdk.on("frameAdded", ({ notificationDetails }) => {
+        // Set up event listeners with proper type safety
+        sdk.on("frameAdded", (payload: FrameActionPayload) => {
           setAdded(true);
-          console.log("Frame added", notificationDetails);
+          console.log("Frame added", payload.notificationDetails);
         });
 
-        sdk.on("frameAddRejected", ({ reason }) => {
-          console.log("frameAddRejected", reason);
+        sdk.on("frameAddRejected", (payload: { reason: string }) => {
+          console.log("frameAddRejected", payload.reason);
         });
 
         sdk.on("frameRemoved", () => {
@@ -273,8 +274,8 @@ export default function Frame() {
           setAdded(false);
         });
 
-        sdk.on("notificationsEnabled", ({ notificationDetails }) => {
-          console.log("notificationsEnabled", notificationDetails);
+        sdk.on("notificationsEnabled", (payload: FrameActionPayload) => {
+          console.log("notificationsEnabled", payload.notificationDetails);
         });
         
         sdk.on("notificationsDisabled", () => {
@@ -619,15 +620,20 @@ export default function Frame() {
                       }, 2000);
                       
                       // Track download in analytics if available
-                      if (typeof window !== 'undefined' && 'posthog' in window) {
-                        // Use proper TypeScript declaration for window.posthog
-                        const posthog = (window as any).posthog;
-                        if (posthog && typeof posthog.capture === 'function') {
-                          posthog.capture('download_image', { 
-                            intensity: intensity,
-                            platform: 'farcaster_frame'
-                          });
+                      try {
+                        if (typeof window !== 'undefined' && 'posthog' in window) {
+                          // Use proper TypeScript declaration for window.posthog
+                          const posthog = (window as any).posthog;
+                          if (posthog && typeof posthog.capture === 'function') {
+                            posthog.capture('download_image', { 
+                              intensity: intensity,
+                              platform: 'farcaster_frame'
+                            });
+                          }
                         }
+                      } catch (analyticsError) {
+                        console.error('Analytics error:', analyticsError);
+                        // Don't let analytics errors break the download functionality
                       }
                       
                     } catch (error) {
