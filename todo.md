@@ -1,0 +1,32 @@
+Here's the optimized implementation checklist following your requirements:
+
+- [ ] 1. Create Next.js page component with viewport meta tags and CSS Grid layout (Base Page)
+- [ ] 2. Add HTML5 canvas element with dynamic sizing and resize observer (Canvas Setup)
+- [ ] 3. Implement frame context types and SDK initialization (Frame Context)
+- [ ] 4. Fetch user's pfp from frame metadata with CORS proxy (Image Loading)
+- [ ] 5. Create pink overlay drawing function with multiply composite (Colorization)
+- [ ] 6. Set up requestAnimationFrame loop for dynamic updates (Performance)
+- [ ] 7. Add range input component with mobile touch styling (Slider UI)
+- [ ] 8. Implement useState + localStorage for intensity value (State Management)
+- [ ] 9. Connect slider value to overlay alpha via useEffect (Real-time Updates)
+- [ ] 10. Add color clamping and state serialization logic (Data Integrity)
+- [ ] 11. Create canvas.toDataURL export function (Image Export)
+- [ ] 12. Implement download button with dynamic filename (Export UX)
+- [ ] 13. Add touch-action: none and passive listeners (Touch Optimization)
+- [ ] 14. Configure CSS media queries for aspect ratios (Responsive Layout)
+- [ ] 15. Wire frame metadata validation and fallbacks (Error Handling)
+- [ ] 16. Connect download button click handler (Final Wiring)
+- [ ] 17. Implement localStorage sync on mount (State Persistence)
+- [ ] 18. Add visual feedback animations for interactions (UI Polish)
+- [ ] 19. Validate responsive behavior across breakpoints (Testing)
+- [ ] 20. Add loading state during image fetch (UX Enhancement)
+
+This checklist follows implementation order:
+1. Structural components (1-3)
+2. Data flow (4-6) 
+3. Interaction layer (7-10)
+4. Export system (11-12)
+5. Mobile optimization (13-14)
+6. Integration and polish (15-20)
+
+Each task completes a specific functional requirement while building on previous implementations. Completing all 20 will result in a fully functional frame meeting all specified requirements without overlap or missing functionality.
