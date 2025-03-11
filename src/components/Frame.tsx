@@ -409,7 +409,14 @@ export default function Frame() {
                       </div>
                     </div>
                     <div className="text-sm font-medium text-pink-700">Loading your image...</div>
-                    <div className="text-xs text-gray-500 mt-1 animate-pulse">Please wait a moment</div>
+                    <div className="text-xs text-gray-500 mt-1 animate-pulse">
+                      {profileImage ? "Processing image..." : "Fetching profile..."}
+                    </div>
+                    <div className="mt-2 text-xs text-gray-400 max-w-[200px] text-center">
+                      {profileImage ? 
+                        "Applying pink filter to your profile picture" : 
+                        "Retrieving your Farcaster profile image"}
+                    </div>
                   </div>
                 </div>
               )}
@@ -430,14 +437,43 @@ export default function Frame() {
                 .animate-pulse {
                   animation: pulse 1.5s infinite;
                 }
+                @keyframes shimmer {
+                  0% { background-position: -200% 0; }
+                  100% { background-position: 200% 0; }
+                }
+                .animate-shimmer {
+                  background: linear-gradient(90deg, rgba(255,255,255,0) 25%, rgba(255,255,255,0.8) 50%, rgba(255,255,255,0) 75%);
+                  background-size: 200% 100%;
+                  animation: shimmer 2s infinite;
+                }
               `}</style>
             </div>
             
-            {profileImage && (
-              <div className="mt-2 text-sm text-center text-gray-500">
-                {imageLoaded 
-                  ? "Profile image loaded successfully" 
-                  : "Loading profile image..."}
+            {profileImage && imageLoaded && (
+              <div className="mt-2 text-sm text-center text-gray-500 flex items-center justify-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>Profile image loaded successfully</span>
+              </div>
+            )}
+            
+            {!profileImage && isSDKLoaded && (
+              <div className="mt-4 p-3 bg-pink-50 border border-pink-200 rounded-lg text-sm text-pink-700">
+                <div className="flex items-start gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 text-pink-500">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                  </svg>
+                  <div>
+                    <p className="font-medium">Waiting for profile image</p>
+                    <p className="mt-1 text-xs text-pink-600">
+                      Make sure you're viewing this frame from a Farcaster client that provides profile data
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
             
