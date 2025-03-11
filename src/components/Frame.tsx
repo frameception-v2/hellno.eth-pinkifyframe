@@ -3,48 +3,16 @@
 import { useEffect, useCallback, useState, useRef } from "react";
 import sdk, {
   AddFrame,
-  SignIn as SignInCore,
-  type Context,
   type FrameContext,
-  type OembedPhotoData,
 } from "@farcaster/frame-sdk";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "~/components/ui/card";
-
-import { config } from "~/components/providers/WagmiProvider";
-import { truncateAddress } from "~/lib/truncateAddress";
-import { base, optimism } from "wagmi/chains";
-import { useSession } from "next-auth/react";
-import { createStore } from "mipd";
-import { Label } from "~/components/ui/label";
 import { PROJECT_TITLE } from "~/lib/constants";
 
-function ExampleCard() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Welcome to the Frame Template</CardTitle>
-        <CardDescription>
-          This is an example card that you can customize or remove
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Label>Place content in a Card here.</Label>
-      </CardContent>
-    </Card>
-  );
-}
 
 export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [context2d, setContext2d] = useState<CanvasRenderingContext2D>();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<FrameContext>();
+  const [context, setContext] = useState<FrameContext | undefined>();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [intensity, setIntensity] = useState<number>(() => {
     // Try to load from localStorage if available
@@ -206,7 +174,7 @@ export default function Frame() {
           console.log("Profile image URL:", imageUrl);
         } else if (frameContext.user?.pfp?.oembedPhotoData) {
           // Handle oembed photo data format
-          const oembedData = frameContext.user.pfp.oembedPhotoData as OembedPhotoData;
+          const oembedData = frameContext.user.pfp.oembedPhotoData;
           if (oembedData.url) {
             imageUrl = oembedData.url;
             console.log("Profile image from oembed:", imageUrl);
