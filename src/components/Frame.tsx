@@ -178,6 +178,8 @@ export default function Frame() {
         const frameContext = await sdk?.context;
         if (!frameContext) {
           console.error("No frame context available");
+          // Load fallback image if no context is available
+          loadFallbackProfileImage();
           return;
         }
 
@@ -187,43 +189,64 @@ export default function Frame() {
         // Extract profile image URL from frame context if available
         let imageUrl = null;
         
-        if (frameContext.user?.pfp?.url) {
-          imageUrl = frameContext.user.pfp.url;
-          console.log("Profile image URL:", imageUrl);
-        } else if (frameContext.user?.pfp?.oembedPhotoData) {
-          // Handle oembed photo data format
-          const oembedData = frameContext.user.pfp.oembedPhotoData;
-          if (oembedData.url) {
-            imageUrl = oembedData.url;
-            console.log("Profile image from oembed:", imageUrl);
+        // Validate frame context data with proper type checking
+        if (frameContext.user) {
+          if (frameContext.user.pfp) {
+            if (typeof frameContext.user.pfp === 'object') {
+              if ('url' in frameContext.user.pfp && typeof frameContext.user.pfp.url === 'string') {
+                imageUrl = frameContext.user.pfp.url;
+                console.log("Profile image URL:", imageUrl);
+              } else if ('oembedPhotoData' in frameContext.user.pfp && 
+                         frameContext.user.pfp.oembedPhotoData && 
+                         typeof frameContext.user.pfp.oembedPhotoData === 'object') {
+                // Handle oembed photo data format
+                const oembedData = frameContext.user.pfp.oembedPhotoData;
+                if ('url' in oembedData && typeof oembedData.url === 'string') {
+                  imageUrl = oembedData.url;
+                  console.log("Profile image from oembed:", imageUrl);
+                }
+              }
+            }
           }
-        } else {
-          console.log("No profile image found in frame context");
+        }
+        
+        if (!imageUrl) {
+          console.log("No valid profile image found in frame context");
+          loadFallbackProfileImage();
+          return;
+        }
+        
+        // Validate URL format
+        let isValidUrl = false;
+        try {
+          new URL(imageUrl);
+          isValidUrl = true;
+        } catch (e) {
+          console.error("Invalid URL format:", imageUrl);
+        }
+        
+        if (!isValidUrl) {
+          console.error("Invalid image URL format");
+          loadFallbackProfileImage();
+          return;
         }
         
         // Apply CORS proxy if needed for cross-origin images
-        if (imageUrl) {
-          // Check if URL is from a different origin and needs a proxy
-          try {
-            const urlObj = new URL(imageUrl);
-            const isExternalDomain = urlObj.origin !== window.location.origin;
-            
-            if (isExternalDomain) {
-              // Use a CORS proxy for external images
-              // Options: 
-              // 1. Cloudflare Worker CORS Proxy
-              // 2. imgproxy.net
-              // 3. cors-anywhere (for development)
-              const corsProxyUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
-              setProfileImage(corsProxyUrl);
-              console.log("Using CORS proxy for image:", corsProxyUrl);
-            } else {
-              setProfileImage(imageUrl);
-            }
-          } catch (error) {
-            console.error("Invalid image URL:", error);
-            setProfileImage(imageUrl); // Try direct URL as fallback
+        try {
+          const urlObj = new URL(imageUrl);
+          const isExternalDomain = urlObj.origin !== window.location.origin;
+          
+          if (isExternalDomain) {
+            // Use a CORS proxy for external images
+            const corsProxyUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
+            setProfileImage(corsProxyUrl);
+            console.log("Using CORS proxy for image:", corsProxyUrl);
+          } else {
+            setProfileImage(imageUrl);
           }
+        } catch (error) {
+          console.error("Error processing image URL:", error);
+          loadFallbackProfileImage();
         }
 
         // If frame isn't already added, prompt user to add it
@@ -259,7 +282,15 @@ export default function Frame() {
         sdk.actions.ready({});
       } catch (error) {
         console.error("Error initializing Frame SDK:", error);
+        loadFallbackProfileImage();
       }
+    };
+    
+    // Helper function to load a fallback profile image
+    const loadFallbackProfileImage = () => {
+      const fallbackImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZTRlNiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSI1MCIgZmlsbD0iI2ZiZDVkYiIvPjxyZWN0IHg9IjY1IiB5PSIxNDAiIHdpZHRoPSI3MCIgaGVpZ2h0PSIzMCIgcng9IjE1IiBmaWxsPSIjZmJkNWRiIi8+PHRleHQgeD0iNTAlIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2VjNDg5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGlua2lmeSBQcm9maWxlPC90ZXh0Pjwvc3ZnPg==';
+      setProfileImage(fallbackImageUrl);
+      console.log("Using fallback profile image");
     };
     
     if (sdk && !isSDKLoaded) {
@@ -293,24 +324,39 @@ export default function Frame() {
       >
         <main className="grid place-items-center px-4 py-4 md:py-8">
           <div className="w-full max-w-[512px] mx-auto relative">
-            <canvas
-              ref={canvasRef}
-              className="w-full h-auto max-h-[512px] aspect-square bg-neutral-100 rounded-lg shadow-sm"
-              style={{
-                maxWidth: 'min(90vw, 512px)',
-                maxHeight: 'min(90vh, 512px)',
-                // Adjust canvas size based on aspect ratio
-                width: 'min(90vw, min(90vh, 512px))',
-                height: 'min(90vw, min(90vh, 512px))'
-              }}
-            />
+            <div className="relative">
+              <canvas
+                ref={canvasRef}
+                className="w-full h-auto max-h-[512px] aspect-square bg-neutral-100 rounded-lg shadow-sm"
+                style={{
+                  maxWidth: 'min(90vw, 512px)',
+                  maxHeight: 'min(90vh, 512px)',
+                  // Adjust canvas size based on aspect ratio
+                  width: 'min(90vw, min(90vh, 512px))',
+                  height: 'min(90vw, min(90vh, 512px))'
+                }}
+              />
+              {!imageLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
+                  <div className="flex flex-col items-center">
+                    <svg className="animate-spin h-8 w-8 text-pink-500 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <div className="text-sm font-medium">Loading image...</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             {profileImage && (
               <div className="mt-2 text-sm text-center text-gray-500">
                 {imageLoaded 
-                  ? "Profile image loaded from Frame context" 
+                  ? "Profile image loaded successfully" 
                   : "Loading profile image..."}
               </div>
             )}
+            
             {!isSDKLoaded && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
                 <div className="text-lg font-medium">Initializing Frame SDK...</div>
