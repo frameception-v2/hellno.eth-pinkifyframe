@@ -336,6 +336,23 @@ export default function Frame() {
         setIntensity(50);
       }
     }
+    
+    // Add responsive testing listener for development
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+      const updateDimensions = () => {
+        const dimensionDisplay = document.getElementById('responsive-dimensions');
+        if (dimensionDisplay) {
+          dimensionDisplay.textContent = `${window.innerWidth}×${window.innerHeight}`;
+        }
+      };
+      
+      window.addEventListener('resize', updateDimensions);
+      updateDimensions(); // Initial call
+      
+      return () => {
+        window.removeEventListener('resize', updateDimensions);
+      };
+    }
   }, []);
   
   // Sync to localStorage whenever intensity changes
@@ -430,6 +447,25 @@ export default function Frame() {
                 <div className="text-lg font-medium">Initializing Frame SDK...</div>
               </div>
             )}
+              
+            {/* Responsive testing overlay - only visible in development */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="fixed bottom-2 right-2 z-50 bg-black/80 text-white text-xs px-2 py-1 rounded-md flex flex-col items-end">
+                <div className="sm:hidden">XS: Mobile (xs)</div>
+                <div className="hidden sm:block md:hidden">SM: Small (sm)</div>
+                <div className="hidden md:block lg:hidden">MD: Medium (md)</div>
+                <div className="hidden lg:block xl:hidden">LG: Large (lg)</div>
+                <div className="hidden xl:block 2xl:hidden">XL: Extra Large (xl)</div>
+                <div className="hidden 2xl:block">2XL: Extra Extra Large (2xl)</div>
+                <div className="mt-1 text-[10px] opacity-70">
+                  <span className="portrait:inline landscape:hidden">Portrait</span>
+                  <span className="portrait:hidden landscape:inline">Landscape</span>
+                  <span className="ml-1">
+                    {typeof window !== 'undefined' ? `${window.innerWidth}×${window.innerHeight}` : ''}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="mt-4 flex flex-col gap-3 w-full max-w-[512px]">
               {/* Add responsive layout styles */}
               <style jsx global>{`
@@ -463,8 +499,40 @@ export default function Frame() {
                     margin: 0 auto;
                   }
                 }
+                
+                /* Additional responsive breakpoints for testing */
+                @media screen and (min-width: 640px) {
+                  .sm-indicator { display: block; }
+                }
+                
+                @media screen and (min-width: 768px) {
+                  .md-indicator { display: block; }
+                }
+                
+                @media screen and (min-width: 1024px) {
+                  .lg-indicator { display: block; }
+                }
+                
+                @media screen and (min-width: 1280px) {
+                  .xl-indicator { display: block; }
+                }
+                
+                @media screen and (min-width: 1536px) {
+                  .xxl-indicator { display: block; }
+                }
+                
+                /* Orientation-specific styles */
+                @media screen and (orientation: portrait) {
+                  .portrait-indicator { display: inline; }
+                  .landscape-indicator { display: none; }
+                }
+                
+                @media screen and (orientation: landscape) {
+                  .portrait-indicator { display: none; }
+                  .landscape-indicator { display: inline; }
+                }
               `}</style>
-              <div className="flex items-center gap-2 slider-container">
+              <div className="flex items-center gap-2 slider-container" data-testid="intensity-slider">
                 <span className="text-sm font-medium min-w-16">Pink Intensity</span>
                 <div className="relative w-full">
                   <input
@@ -547,8 +615,9 @@ export default function Frame() {
                 <span className="text-sm min-w-8 slider-value">{intensity}%</span>
               </div>
               
-              <div className="controls-container">
+              <div className="controls-container" data-testid="download-container">
                 <button
+                  data-testid="download-button"
                   onClick={() => {
                     if (!canvasRef.current || !imageLoaded) return;
                     
