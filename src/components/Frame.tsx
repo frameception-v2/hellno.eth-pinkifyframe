@@ -118,7 +118,29 @@ export default function Frame() {
       console.error('Error loading image:', e);
       setImageLoaded(false);
       
-      // Load fallback image
+      // Try alternative CORS proxy if first attempt failed
+      if (profileImage && profileImage.startsWith('https://corsproxy.io')) {
+        console.log('First CORS proxy failed, trying alternative...');
+        const originalUrl = decodeURIComponent(profileImage.replace('https://corsproxy.io/?', ''));
+        const alternativeProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
+        
+        const retryImg = new Image();
+        retryImg.crossOrigin = 'anonymous';
+        retryImg.onload = () => {
+          applyPinkFilter(retryImg, intensity);
+        };
+        retryImg.onerror = () => {
+          console.error('All CORS proxies failed, using fallback image');
+          loadFallbackImage();
+        };
+        retryImg.src = alternativeProxy;
+      } else {
+        loadFallbackImage();
+      }
+    };
+    
+    // Helper function to load fallback image
+    const loadFallbackImage = () => {
       const fallbackImg = new Image();
       fallbackImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YzZjRmNiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiPk5vIEltYWdlPC90ZXh0Pjwvc3ZnPg==';
       fallbackImg.onload = () => {
@@ -177,18 +199,45 @@ export default function Frame() {
         setAdded(frameContext.client.added);
 
         // Extract profile image URL from frame context if available
+        let imageUrl = null;
+        
         if (frameContext.user?.pfp?.url) {
-          setProfileImage(frameContext.user.pfp.url);
-          console.log("Profile image URL:", frameContext.user.pfp.url);
+          imageUrl = frameContext.user.pfp.url;
+          console.log("Profile image URL:", imageUrl);
         } else if (frameContext.user?.pfp?.oembedPhotoData) {
           // Handle oembed photo data format
           const oembedData = frameContext.user.pfp.oembedPhotoData as OembedPhotoData;
           if (oembedData.url) {
-            setProfileImage(oembedData.url);
-            console.log("Profile image from oembed:", oembedData.url);
+            imageUrl = oembedData.url;
+            console.log("Profile image from oembed:", imageUrl);
           }
         } else {
           console.log("No profile image found in frame context");
+        }
+        
+        // Apply CORS proxy if needed for cross-origin images
+        if (imageUrl) {
+          // Check if URL is from a different origin and needs a proxy
+          try {
+            const urlObj = new URL(imageUrl);
+            const isExternalDomain = urlObj.origin !== window.location.origin;
+            
+            if (isExternalDomain) {
+              // Use a CORS proxy for external images
+              // Options: 
+              // 1. Cloudflare Worker CORS Proxy
+              // 2. imgproxy.net
+              // 3. cors-anywhere (for development)
+              const corsProxyUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
+              setProfileImage(corsProxyUrl);
+              console.log("Using CORS proxy for image:", corsProxyUrl);
+            } else {
+              setProfileImage(imageUrl);
+            }
+          } catch (error) {
+            console.error("Invalid image URL:", error);
+            setProfileImage(imageUrl); // Try direct URL as fallback
+          }
         }
 
         // If frame isn't already added, prompt user to add it
@@ -267,7 +316,9 @@ export default function Frame() {
             />
             {profileImage && (
               <div className="mt-2 text-sm text-center text-gray-500">
-                Profile image loaded from Frame context
+                {imageLoaded 
+                  ? "Profile image loaded from Frame context" 
+                  : "Loading profile image..."}
               </div>
             )}
             {!isSDKLoaded && (
