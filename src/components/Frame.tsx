@@ -213,6 +213,8 @@ export default function Frame() {
           loadFallbackProfileImage();
           return;
         }
+        
+        setProfileImage(imageUrl);
 
         // If frame isn't already added, prompt user to add it
         if (!frameContext.client.added) {
