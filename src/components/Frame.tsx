@@ -175,7 +175,7 @@ export default function Frame() {
     const load = async () => {
       try {
         // Get frame context from SDK
-        const frameContext = await sdk.context;
+        const frameContext = await sdk?.context;
         if (!frameContext) {
           console.error("No frame context available");
           return;
