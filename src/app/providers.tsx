@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-import { FrameContext } from "@farcaster/frame-node";
 import sdk from "@farcaster/frame-sdk";
 
 // Conditionally import PostHog to prevent build errors
@@ -67,7 +66,7 @@ export function Providers({
   children: React.ReactNode;
 }) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<FrameContext>();
+  const [context, setContext] = useState<any>();
 
   useEffect(() => {
     const load = async () => {
@@ -77,7 +76,7 @@ export function Providers({
           return;
         }
 
-        setContext(frameContext as unknown as FrameContext);
+        setContext(frameContext);
       } catch (e) {
         console.error('Error loading frame context:', e);
       }

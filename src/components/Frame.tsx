@@ -555,12 +555,15 @@ export default function Frame() {
                       }, 2000);
                       
                       // Track download in analytics if available
-                      if (typeof window !== 'undefined' && 'posthog' in window && window.posthog) {
-                        // @ts-ignore - PostHog might not be typed
-                        window.posthog.capture('download_image', { 
-                          intensity: intensity,
-                          platform: 'farcaster_frame'
-                        });
+                      if (typeof window !== 'undefined' && 'posthog' in window) {
+                        // Use proper TypeScript declaration for window.posthog
+                        const posthog = (window as any).posthog;
+                        if (posthog && typeof posthog.capture === 'function') {
+                          posthog.capture('download_image', { 
+                            intensity: intensity,
+                            platform: 'farcaster_frame'
+                          });
+                        }
                       }
                       
                     } catch (error) {

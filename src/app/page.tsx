@@ -9,7 +9,7 @@ const appUrl =
 
 const frame = {
   version: "vNext",
-  imageUrl: `${appUrl}/opengraph-image`,
+  imageUrl: `${appUrl}/opengraph-image.png`,
   button: {
     title: "Pinkify My Profile",
     action: {
@@ -31,9 +31,19 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: PROJECT_TITLE,
       description: PROJECT_DESCRIPTION,
+      images: [
+        {
+          url: '/opengraph-image.png',
+          width: 1200,
+          height: 630,
+          alt: PROJECT_TITLE,
+        }
+      ],
     },
     other: {
       "fc:frame": JSON.stringify(frame),
+      "fc:frame:image": `${appUrl}/opengraph-image.png`,
+      "fc:frame:post_url": appUrl,
     },
   };
 }
