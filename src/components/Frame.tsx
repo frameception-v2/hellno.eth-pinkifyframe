@@ -14,14 +14,7 @@ export default function Frame() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext | undefined>();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [intensity, setIntensity] = useState<number>(() => {
-    // Try to load from localStorage if available
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('pinkify-intensity');
-      return saved ? parseInt(saved, 10) : 50;
-    }
-    return 50; // Default intensity
-  });
+  const [intensity, setIntensity] = useState<number>(50); // Default intensity
   const [imageLoaded, setImageLoaded] = useState(false);
 
   // Function to apply pink filter to the image
@@ -305,7 +298,8 @@ export default function Frame() {
 
   // Sync with localStorage and URL parameters on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // This ensures the code only runs on the client side
+    const syncIntensity = () => {
       try {
         // First check URL parameters (highest priority)
         const params = new URLSearchParams(window.location.search);
@@ -335,6 +329,11 @@ export default function Frame() {
         // Fallback to default value if there's an error
         setIntensity(50);
       }
+    };
+
+    // Only run in browser environment
+    if (typeof window !== 'undefined') {
+      syncIntensity();
     }
     
     // Add responsive testing listener for development
