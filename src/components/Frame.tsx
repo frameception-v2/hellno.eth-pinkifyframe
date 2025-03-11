@@ -68,6 +68,23 @@ export default function Frame() {
     });
 
     resizeObserver.observe(canvas.parentElement!);
+    
+    // Set up passive touch event listeners for better mobile performance
+    const sliderElement = document.querySelector('input[type="range"]');
+    if (sliderElement) {
+      const options = { passive: true };
+      sliderElement.addEventListener('touchstart', () => {}, options);
+      sliderElement.addEventListener('touchmove', () => {}, options);
+      
+      return () => {
+        resizeObserver.disconnect();
+        if (sliderElement) {
+          sliderElement.removeEventListener('touchstart', () => {}, options);
+          sliderElement.removeEventListener('touchmove', () => {}, options);
+        }
+      };
+    }
+    
     return () => resizeObserver.disconnect();
   }, []);
   
