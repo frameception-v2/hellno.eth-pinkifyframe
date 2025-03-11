@@ -7,10 +7,9 @@ import sdk, {
 } from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
 
-
 export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [context2d, setContext2d] = useState<CanvasRenderingContext2D>();
+  const [context2d, setContext2d] = useState<CanvasRenderingContext2D | null>(null);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext | undefined>();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -67,7 +66,9 @@ export default function Frame() {
       canvas.height = width; // Maintain 1:1 aspect ratio
     });
 
-    resizeObserver.observe(canvas.parentElement!);
+    if (canvas.parentElement) {
+      resizeObserver.observe(canvas.parentElement);
+    }
     
     // Set up passive touch event listeners for better mobile performance
     const sliderElement = document.querySelector('input[type="range"]');
@@ -100,8 +101,8 @@ export default function Frame() {
       applyPinkFilter(img, intensity);
     };
     
-    img.onerror = (e) => {
-      console.error('Error loading image:', e);
+    img.onerror = () => {
+      console.error('Error loading image');
       setImageLoaded(false);
       
       // Try alternative CORS proxy if first attempt failed
@@ -152,7 +153,6 @@ export default function Frame() {
   }, [intensity, applyPinkFilter, profileImage, imageLoaded]);
 
   const [added, setAdded] = useState(false);
-
   const [addFrameResult, setAddFrameResult] = useState("");
 
   const addFrame = useCallback(async () => {
@@ -161,17 +161,21 @@ export default function Frame() {
     } catch (error) {
       if (error instanceof AddFrame.RejectedByUser) {
         setAddFrameResult(`Not added: ${error.message}`);
-      }
-
-      if (error instanceof AddFrame.InvalidDomainManifest) {
+      } else if (error instanceof AddFrame.InvalidDomainManifest) {
         setAddFrameResult(`Not added: ${error.message}`);
+      } else {
+        setAddFrameResult(`Error: ${String(error)}`);
       }
-
-      setAddFrameResult(`Error: ${error}`);
     }
   }, []);
 
   useEffect(() => {
+    const loadFallbackProfileImage = () => {
+      const fallbackImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZTRlNiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSI1MCIgZmlsbD0iI2ZiZDVkYiIvPjxyZWN0IHg9IjY1IiB5PSIxNDAiIHdpZHRoPSI3MCIgaGVpZ2h0PSIzMCIgcng9IjE1IiBmaWxsPSIjZmJkNWRiIi8+PHRleHQgeD0iNTAlIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2VjNDg5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGlua2lmeSBQcm9maWxlPC90ZXh0Pjwvc3ZnPg==';
+      setProfileImage(fallbackImageUrl);
+      console.log("Using fallback profile image");
+    };
+
     const load = async () => {
       try {
         // Get frame context from SDK
@@ -279,18 +283,11 @@ export default function Frame() {
 
         // Signal to the Frame SDK that we're ready to display content
         console.log("Calling ready");
-        sdk.actions.ready({});
+        sdk.actions.ready();
       } catch (error) {
         console.error("Error initializing Frame SDK:", error);
         loadFallbackProfileImage();
       }
-    };
-    
-    // Helper function to load a fallback profile image
-    const loadFallbackProfileImage = () => {
-      const fallbackImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZTRlNiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSI1MCIgZmlsbD0iI2ZiZDVkYiIvPjxyZWN0IHg9IjY1IiB5PSIxNDAiIHdpZHRoPSI3MCIgaGVpZ2h0PSIzMCIgcng9IjE1IiBmaWxsPSIjZmJkNWRiIi8+PHRleHQgeD0iNTAlIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2VjNDg5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGlua2lmeSBQcm9maWxlPC90ZXh0Pjwvc3ZnPg==';
-      setProfileImage(fallbackImageUrl);
-      console.log("Using fallback profile image");
     };
     
     if (sdk && !isSDKLoaded) {
@@ -304,6 +301,21 @@ export default function Frame() {
       };
     }
   }, [isSDKLoaded, addFrame]);
+
+  // Check URL parameters for intensity value
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const intensityParam = params.get('intensity');
+      if (intensityParam) {
+        const intensityValue = parseInt(intensityParam, 10);
+        if (!isNaN(intensityValue) && intensityValue >= 0 && intensityValue <= 100) {
+          setIntensity(intensityValue);
+          localStorage.setItem('pinkify-intensity', intensityValue.toString());
+        }
+      }
+    }
+  }, []);
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -411,7 +423,7 @@ export default function Frame() {
                         localStorage.setItem('pinkify-intensity', newValue.toString());
                       }
                     }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer touch-manipulation"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     style={{
                       background: `linear-gradient(to right, #ffc0cb ${intensity}%, #f3f4f6 ${intensity}%)`,
                       touchAction: 'none', // Prevent scrolling when using the slider
