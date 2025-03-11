@@ -73,14 +73,15 @@ export default function Frame() {
     const sliderElement = document.querySelector('input[type="range"]');
     if (sliderElement) {
       const options = { passive: true };
-      sliderElement.addEventListener('touchstart', () => {}, options);
-      sliderElement.addEventListener('touchmove', () => {}, options);
+      const emptyHandler = () => {};
+      sliderElement.addEventListener('touchstart', emptyHandler, options);
+      sliderElement.addEventListener('touchmove', emptyHandler, options);
       
       return () => {
         resizeObserver.disconnect();
         if (sliderElement) {
-          sliderElement.removeEventListener('touchstart', () => {}, options);
-          sliderElement.removeEventListener('touchmove', () => {}, options);
+          sliderElement.removeEventListener('touchstart', emptyHandler, options);
+          sliderElement.removeEventListener('touchmove', emptyHandler, options);
         }
       };
     }
