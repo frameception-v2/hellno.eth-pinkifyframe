@@ -287,17 +287,21 @@ export default function Frame() {
           paddingBottom: context?.client.safeAreaInsets?.bottom ?? 0,
           paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
           paddingRight: context?.client.safeAreaInsets?.right ?? 0,
-          height: '100dvh' // Use dynamic viewport height
+          height: '100dvh', // Use dynamic viewport height
+          maxHeight: '100dvh' // Ensure content doesn't overflow
         }}
       >
-        <main className="grid place-items-center px-4 py-8">
+        <main className="grid place-items-center px-4 py-4 md:py-8">
           <div className="w-full max-w-[512px] mx-auto relative">
             <canvas
               ref={canvasRef}
-              className="w-full h-auto max-h-[512px] aspect-square bg-neutral-100 rounded-lg"
+              className="w-full h-auto max-h-[512px] aspect-square bg-neutral-100 rounded-lg shadow-sm"
               style={{
                 maxWidth: 'min(90vw, 512px)',
-                maxHeight: 'min(90vh, 512px)'
+                maxHeight: 'min(90vh, 512px)',
+                // Adjust canvas size based on aspect ratio
+                width: 'min(90vw, min(90vh, 512px))',
+                height: 'min(90vw, min(90vh, 512px))'
               }}
             />
             {profileImage && (
@@ -313,7 +317,40 @@ export default function Frame() {
               </div>
             )}
             <div className="mt-4 flex flex-col gap-3 w-full max-w-[512px]">
-              <div className="flex items-center gap-2">
+              {/* Add responsive layout styles */}
+              <style jsx global>{`
+                /* Portrait phones */
+                @media screen and (max-width: 428px) {
+                  .slider-container {
+                    flex-direction: column;
+                    align-items: flex-start;
+                  }
+                  .slider-value {
+                    margin-left: auto;
+                  }
+                }
+                
+                /* Landscape phones */
+                @media screen and (max-height: 428px) and (orientation: landscape) {
+                  .canvas-container {
+                    max-height: 70vh;
+                  }
+                  .controls-container {
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                  }
+                }
+                
+                /* Tablets and larger */
+                @media screen and (min-width: 768px) {
+                  .slider-container {
+                    max-width: 80%;
+                    margin: 0 auto;
+                  }
+                }
+              `}</style>
+              <div className="flex items-center gap-2 slider-container">
                 <span className="text-sm font-medium min-w-16">Pink Intensity</span>
                 <div className="relative w-full">
                   <input
@@ -372,26 +409,48 @@ export default function Frame() {
                     }
                   `}</style>
                 </div>
-                <span className="text-sm min-w-8">{intensity}%</span>
+                <span className="text-sm min-w-8 slider-value">{intensity}%</span>
               </div>
               
-              <button
-                onClick={() => {
-                  if (!canvasRef.current) return;
-                  
-                  // Create download link
-                  const link = document.createElement('a');
-                  link.download = `pinkified-profile-${Date.now()}.png`;
-                  link.href = canvasRef.current.toDataURL('image/png');
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                }}
-                disabled={!imageLoaded}
-                className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Download PNG
-              </button>
+              <div className="controls-container">
+                <button
+                  onClick={() => {
+                    if (!canvasRef.current) return;
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.download = `pinkified-profile-${Date.now()}.png`;
+                    link.href = canvasRef.current.toDataURL('image/png');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Show feedback toast for mobile users
+                    const toast = document.createElement('div');
+                    toast.textContent = 'Image downloaded!';
+                    toast.style.position = 'fixed';
+                    toast.style.bottom = '20px';
+                    toast.style.left = '50%';
+                    toast.style.transform = 'translateX(-50%)';
+                    toast.style.backgroundColor = '#ec4899';
+                    toast.style.color = 'white';
+                    toast.style.padding = '8px 16px';
+                    toast.style.borderRadius = '4px';
+                    toast.style.zIndex = '1000';
+                    toast.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                    document.body.appendChild(toast);
+                    
+                    // Remove toast after 2 seconds
+                    setTimeout(() => {
+                      document.body.removeChild(toast);
+                    }, 2000);
+                  }}
+                  disabled={!imageLoaded}
+                  className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-colors"
+                >
+                  Download PNG
+                </button>
+              </div>
             </div>
           </div>
         </main>
