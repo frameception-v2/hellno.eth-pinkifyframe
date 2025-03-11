@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import Head from "next/head";
 import sdk, {
   AddFrame,
@@ -43,7 +43,7 @@ export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [context2d, setContext2d] = useState<CanvasRenderingContext2D>();
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<Context.FrameContext>();
+  const [context, setContext] = useState<Context>();
 
   // Setup canvas context and resize observer
   useEffect(() => {
