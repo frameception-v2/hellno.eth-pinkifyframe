@@ -190,7 +190,7 @@ export default function Frame() {
         setContext(frameContext);
         setAdded(frameContext.client.added);
 
-        let imageUrl = frameContext.user?.pfpUrl || null;
+        const imageUrl = frameContext.user?.pfpUrl || null;
         
         if (!imageUrl) {
           console.log("No valid profile image found in frame context");
@@ -334,9 +334,13 @@ export default function Frame() {
       <div 
         className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
         style={{
+          // @ts-expect-error any
           paddingTop: context?.client?.safeAreaInsets?.top ?? 0,
+          // @ts-expect-error any
           paddingBottom: context?.client?.safeAreaInsets?.bottom ?? 0,
+          // @ts-expect-error any
           paddingLeft: context?.client?.safeAreaInsets?.left ?? 0,
+          // @ts-expect-error any
           paddingRight: context?.client?.safeAreaInsets?.right ?? 0,
           height: '100dvh', // Use dynamic viewport height
           maxHeight: '100dvh' // Ensure content doesn't overflow
