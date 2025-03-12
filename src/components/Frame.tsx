@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useCallback, useState, useRef } from "react";
-import sdk, {
-  AddFrame,
-} from "@farcaster/frame-sdk";
+import sdk from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
 import type { FrameContext } from "@farcaster/frame-node";
 
@@ -726,7 +724,7 @@ export default function Frame() {
                       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
                         try {
                           // Open image in new tab as fallback
-                          window.open(canvasRef.current.toDataURL('image/png'), '_blank');
+                          window.open(canvasRef.current?.toDataURL('image/png'), '_blank');
                         } catch (e) {
                           console.error('Fallback download failed:', e);
                         }

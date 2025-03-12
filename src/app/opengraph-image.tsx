@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
 import { PROJECT_TITLE, PROJECT_DESCRIPTION } from "~/lib/constants";
-import fs from "fs";
 import { join } from "path";
 
 export const alt = PROJECT_TITLE;
@@ -37,12 +36,16 @@ async function initializeFonts() {
   if (imageOptions) return imageOptions;
 
   try {
-    const regularFont = await loadFont(
-      join(process.cwd(), "public/fonts/Nunito-Regular.ttf")
-    );
-    const semiBoldFont = await loadFont(
-      join(process.cwd(), "public/fonts/Nunito-SemiBold.ttf")
-    );
+    const fontUrl = `${process.env.NEXTAUTH_URL}/fonts/Nunito-Regular.ttf`;
+    const semiBoldFontUrl = `${process.env.NEXTAUTH_URL}/fonts/Nunito-SemiBold.ttf`;
+    
+    const [regularResponse, semiBoldResponse] = await Promise.all([
+      fetch(fontUrl),
+      fetch(semiBoldFontUrl)
+    ]);
+    
+    const regularFont = await regularResponse.arrayBuffer();
+    const semiBoldFont = await semiBoldResponse.arrayBuffer();
 
     imageOptions = {
       width: 1200,
