@@ -12,7 +12,7 @@ export default function Frame() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext | undefined>();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [intensity, setIntensity] = useState<number>(50); // Default intensity
+  const [intensity, setIntensity] = useState<number>(69); // Default intensity
   const [imageLoaded, setImageLoaded] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
@@ -36,11 +36,17 @@ export default function Frame() {
       // Always draw original image first
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       
-      // Try to apply pink overlay
-      const alpha = intensity / 100;
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.fillStyle = `rgba(255, 192, 203, ${alpha})`;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Apply pink overlay with full coverage at 100%
+      if (intensity === 100) {
+        ctx.fillStyle = '#ff69b4'; // Solid hot pink
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      } else {
+        const alpha = intensity / 100;
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.fillStyle = `rgba(255, 105, 180, ${alpha * 1.5})`; // Stronger pink color
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
       
       // Reset composite operation
       ctx.globalCompositeOperation = 'source-over';
