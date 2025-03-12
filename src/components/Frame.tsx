@@ -651,8 +651,8 @@ export default function Frame() {
                         console.error('Analytics error:', analyticsError);
                         // Don't let analytics errors break the download functionality
                       }
-                      
-                    } catch (error) {
+                    } 
+                  } catch (error) {
                       console.error('Error downloading image:', error);
                       
                       // Show animated error toast
