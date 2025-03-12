@@ -24,6 +24,7 @@ export default function Frame() {
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
+    console.log('applyPinkFilter canvas', canvas, 'ctx', ctx);
     if (!ctx) return;
 
     console.log('Applying pink filter with intensity:', intensity);
@@ -51,7 +52,7 @@ export default function Frame() {
     }
     
     setImageLoaded(true);
-  }, [context2d]);
+  }, [canvasRef]);
   
   // Setup canvas context and resize observer
   useEffect(() => {
@@ -101,9 +102,8 @@ export default function Frame() {
     if (typeof window === 'undefined') return;
 
     console.log('profileImage:', profileImage);
-    console.log('context2d:', context2d);
     console.log('canvasRef:', canvasRef.current);
-    if (!profileImage || !context2d || !canvasRef.current) return;
+    if (!profileImage || !canvasRef.current) return;
     
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -150,7 +150,7 @@ export default function Frame() {
     };
     
     img.src = profileImage;
-  }, [profileImage, context2d, applyPinkFilter, intensity]);
+  }, [profileImage, applyPinkFilter, intensity]);
   
   // Update filter when intensity changes
   useEffect(() => {
