@@ -190,17 +190,7 @@ export default function Frame() {
         setContext(frameContext);
         setAdded(frameContext.client.added);
 
-        // Check for OembedPhotoData in frame metadata
-        let imageUrl = null;
-        
-        // First try to get the profile image from user.pfpUrl
-        if (frameContext.user?.pfpUrl) {
-          imageUrl = frameContext.user.pfpUrl;
-        } 
-        // Then check for OembedPhotoData in the metadata
-        else if (frameContext.oembed?.type === 'photo' && frameContext.oembed.url) {
-          imageUrl = frameContext.oembed.url;
-        }
+        let imageUrl = frameContext.user?.pfpUrl || null;
         
         if (!imageUrl) {
           console.log("No valid profile image found in frame context");
