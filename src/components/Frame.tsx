@@ -21,7 +21,15 @@ export default function Frame() {
 
   // Function to apply pink filter to the image
   const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
-    if (!context2d || !canvasRef.current) return;
+    if (!context2d || !canvasRef.current) {
+      console.error('Canvas context not available:', { 
+        context2d: !!context2d, 
+        canvasRef: !!canvasRef.current 
+      });
+      return;
+    }
+    
+    console.log('Applying pink filter with intensity:', intensity);
     
     const canvas = canvasRef.current;
     const ctx = context2d;
@@ -97,11 +105,14 @@ export default function Frame() {
     img.crossOrigin = 'anonymous';
     
     img.onload = () => {
+      console.log('Successfully loaded profile image from:', profileImage);
+      console.log('Image dimensions:', img.width, 'x', img.height);
       applyPinkFilter(img, intensity);
     };
     
     img.onerror = () => {
-      console.error('Error loading image');
+      console.error('Error loading image from:', profileImage);
+      console.log('Attempting fallback loading strategies...');
       setImageLoaded(false);
       
       // Try alternative CORS proxy if first attempt failed
@@ -374,12 +385,12 @@ export default function Frame() {
                     </div>
                     <div className="text-sm font-medium text-pink-700">Loading your image...</div>
                     <div className="text-xs text-gray-500 mt-1 animate-pulse">
-                      {profileImage ? "Processing image..." : "Fetching profile..."}
+                      {profileImage ? "Processing image..." : "Initializing frame..."}
                     </div>
                     <div className="mt-2 text-xs text-gray-400 max-w-[200px] text-center">
                       {profileImage ? 
                         "Applying pink filter to your profile picture" : 
-                        "Retrieving your Farcaster profile image"}
+                        "Open in Farcaster to pinkify your profile image"}
                     </div>
                   </div>
                 </div>
