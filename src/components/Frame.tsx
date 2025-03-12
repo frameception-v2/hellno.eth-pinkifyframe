@@ -347,7 +347,6 @@ export default function Frame() {
   }
 
   return (
-    <>
       <div 
         className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
         style={{
