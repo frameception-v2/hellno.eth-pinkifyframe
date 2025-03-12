@@ -9,7 +9,6 @@ import type { FrameContext } from "@farcaster/frame-node";
 
 export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [context2d, setContext2d] = useState<CanvasRenderingContext2D | null>(null);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext | undefined>();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -21,33 +20,35 @@ export default function Frame() {
 
   // Function to apply pink filter to the image
   const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
-    if (!context2d || !canvasRef.current) {
-      console.error('Canvas context not available:', { 
-        context2d: !!context2d, 
-        canvasRef: !!canvasRef.current 
-      });
-      return;
-    }
-    
-    console.log('Applying pink filter with intensity:', intensity);
+    if (!canvasRef.current) return;
     
     const canvas = canvasRef.current;
-    const ctx = context2d;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    console.log('Applying pink filter with intensity:', intensity);
     
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw original image
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    
-    // Apply pink overlay with intensity
-    const alpha = intensity / 100;
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = `rgba(255, 192, 203, ${alpha})`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Reset composite operation
-    ctx.globalCompositeOperation = 'source-over';
+    try {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Always draw original image first
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      // Try to apply pink overlay
+      const alpha = intensity / 100;
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.fillStyle = `rgba(255, 192, 203, ${alpha})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Reset composite operation
+      ctx.globalCompositeOperation = 'source-over';
+    } catch (error) {
+      console.error('Error applying filter:', error);
+      // If filter fails, just draw the original image
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
     
     setImageLoaded(true);
   }, [context2d]);
@@ -60,10 +61,9 @@ export default function Frame() {
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    setContext2d(ctx);
-    ctx.imageSmoothingEnabled = true;
+    if (ctx) {
+      ctx.imageSmoothingEnabled = true;
+    }
 
     const resizeObserver = new ResizeObserver(([entry]) => {
       if (!entry) return;
