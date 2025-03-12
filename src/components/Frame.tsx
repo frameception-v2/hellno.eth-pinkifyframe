@@ -581,29 +581,16 @@ export default function Frame() {
                 <button
                   data-testid="download-button"
                   onClick={() => {
-                    if (!canvasRef.current || !imageLoaded) return;
+                    if (!profileImage || !imageLoaded) return;
                     
-                    try {
-                      // Create a high-quality PNG with proper filename
-                      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                      const filename = `pinkified-profile-${timestamp}.png`;
-                      
-                      // Get canvas data with maximum quality
-                      const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
-                      
-                      // Create and trigger download
-                      const link = document.createElement('a');
-                      link.download = filename;
-                      link.href = dataUrl;
-                      link.rel = 'noopener noreferrer';
-                      document.body.appendChild(link);
-                      link.click();
-                      
-                      // Clean up
-                      setTimeout(() => {
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(dataUrl);
-                      }, 100);
+                    // Generate unique download URL with current parameters
+                    const downloadUrl = new URL('/api/download', window.location.origin);
+                    downloadUrl.searchParams.set('imageUrl', profileImage);
+                    downloadUrl.searchParams.set('intensity', intensity.toString());
+                    downloadUrl.searchParams.set('t', Date.now().toString());
+                    
+                    // Open in new window to trigger download
+                    window.location.href = downloadUrl.toString();
                       
                       // Show animated feedback toast for mobile users
                       const toast = document.createElement('div');
