@@ -99,6 +99,10 @@ export default function Frame() {
   // Load and process profile image when URL changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    console.log('profileImage:', profileImage);
+    console.log('context2d:', context2d);
+    console.log('canvasRef:', canvasRef.current);
     if (!profileImage || !context2d || !canvasRef.current) return;
     
     const img = new Image();
@@ -202,13 +206,13 @@ export default function Frame() {
         setAdded(frameContext.client.added);
 
         const imageUrl = frameContext.user?.pfpUrl || null;
-        
         if (!imageUrl) {
           console.log("No valid profile image found in frame context");
           loadFallbackProfileImage();
           return;
         }
         
+        console.log('Profile image URL:', imageUrl);
         // Validate URL format
         let isValidUrl = false;
         try {
@@ -224,9 +228,7 @@ export default function Frame() {
           return;
         }
         
-        // Apply CORS proxy to the image URL to avoid cross-origin issues
-        const corsProxyUrl = `https://corsproxy.io/?${encodeURIComponent(imageUrl)}`;
-        setProfileImage(corsProxyUrl);
+        setProfileImage(imageUrl);
 
         // If frame isn't already added, prompt user to add it
         if (!frameContext.client.added) {
