@@ -579,16 +579,17 @@ export default function Frame() {
                 <button
                   data-testid="download-button"
                   onClick={() => {
-                    if (!profileImage || !imageLoaded) return;
-                    
-                    // Generate unique download URL with current parameters
-                    const downloadUrl = new URL('/api/download', window.location.origin);
-                    downloadUrl.searchParams.set('imageUrl', profileImage);
-                    downloadUrl.searchParams.set('intensity', intensity.toString());
-                    downloadUrl.searchParams.set('t', Date.now().toString());
-                    
-                    // Open in new window to trigger download
-                    window.location.href = downloadUrl.toString();
+                    try {
+                      if (!profileImage || !imageLoaded) return;
+                      
+                      // Generate unique download URL with current parameters
+                      const downloadUrl = new URL('/api/download', window.location.origin);
+                      downloadUrl.searchParams.set('imageUrl', profileImage);
+                      downloadUrl.searchParams.set('intensity', intensity.toString());
+                      downloadUrl.searchParams.set('t', Date.now().toString());
+                      
+                      // Open in new window to trigger download
+                      window.location.href = downloadUrl.toString();
                       
                       // Show animated feedback toast for mobile users
                       const toast = document.createElement('div');
