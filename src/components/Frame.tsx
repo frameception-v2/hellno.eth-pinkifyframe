@@ -6,8 +6,11 @@ import { PROJECT_TITLE } from "~/lib/constants";
 import type { FrameContext } from "@farcaster/frame-node";
 import { ColorSelect } from "./ui/color-select";
 import { COLOR_MAP, ColorName } from "~/lib/colors";
+import { Router } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Frame() {
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext | undefined>();
@@ -597,20 +600,15 @@ export default function Frame() {
 
                       // Generate unique download URL with current parameters
                       const downloadUrl = new URL('/api/download', window.location.origin);
-                      console.log('downloadUrl', downloadUrl)
                       downloadUrl.searchParams.set('imageUrl', profileImage);
                       downloadUrl.searchParams.set('intensity', intensity.toString());
                       downloadUrl.searchParams.set('color', selectedColor);
                       downloadUrl.searchParams.set('t', Date.now().toString());
 
-                      // Create a hidden anchor element for download
-                      const a = document.createElement('a');
-                      a.href = downloadUrl.toString();
-                      a.download = `${selectedColor.toLowerCase()}-profile.png`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-
+                      console.log('downloadUrl', downloadUrl.href)
+                      // router.replace(downloadUrl.href);
+                      sdk.actions.openUrl(downloadUrl.href);
+                 
                       // Show animated feedback toast for mobile users
                       const toast = document.createElement('div');
                       toast.textContent = 'Image downloaded!';

@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './select';
-import { COLOR_MAP, ColorName } from '@/lib/colors';
+import { COLOR_MAP, ColorName } from '~/lib/colors';
 
 export function ColorSelect({
   selectedColor,
