@@ -4,7 +4,6 @@ import { useEffect, useCallback, useState, useRef } from "react";
 import sdk, {
   AddFrame,
 } from "@farcaster/frame-sdk";
-import { PROJECT_TITLE } from "~/lib/constants";
 import type { FrameContext } from "@farcaster/frame-node";
 
 export default function Frame() {
@@ -42,7 +41,7 @@ export default function Frame() {
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
-        // ai! improve this alpha scaling to be more aggressive at lower intensities
+        // ai!  improve this alpha scaling to be more aggressive at lower intensities
         // and less jumpy transition from 99 to 100
         const alpha = (intensity / 100);
         ctx.globalCompositeOperation = 'multiply';
