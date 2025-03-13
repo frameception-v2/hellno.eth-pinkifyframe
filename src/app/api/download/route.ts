@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const imageUrl = searchParams.get("imageUrl");
   const intensity = Number(searchParams.get("intensity")) || 50;
+  console.log('download searchParams', searchParams)
 
   try {
     // Validate parameters
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Image processing error:", error);
     return NextResponse.json(
-      { error: "Failed to process image" },
+      { error: "Failed to process image", details: String(error) },
       { status: 400 }
     );
   }
