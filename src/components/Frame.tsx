@@ -592,19 +592,8 @@ export default function Frame() {
                       const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
                       console.log('dataUrl:', dataUrl);
                       // ai! change this download pattern to use the sdk and the openUrl method instead
-                      // Create and trigger download
-                      const link = document.createElement('a');
-                      link.download = filename;
-                      link.href = dataUrl;
-                      link.rel = 'noopener noreferrer';
-                      document.body.appendChild(link);
-                      link.click();
-                      
-                      // Clean up
-                      setTimeout(() => {
-                        document.body.removeChild(link);
-                        window.URL.revokeObjectURL(dataUrl);
-                      }, 100);
+                      // Open image URL using Frame SDK
+                      sdk.actions.openUrl(dataUrl);
                       
                       // Show animated feedback toast for mobile users
                       const toast = document.createElement('div');
