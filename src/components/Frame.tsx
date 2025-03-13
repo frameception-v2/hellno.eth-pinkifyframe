@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useCallback, useState, useRef } from "react";
-import sdk, {
-  AddFrame,
-} from "@farcaster/frame-sdk";
+import sdk, { AddFrame } from "@farcaster/frame-sdk";
+import { PROJECT_TITLE } from "~/lib/constants";
 import type { FrameContext } from "@farcaster/frame-node";
 
 export default function Frame() {
@@ -28,21 +27,21 @@ export default function Frame() {
   // Function to apply pink filter to the image
   const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
     if (!canvasRef.current) return;
-    
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     console.log('applyPinkFilter canvas', canvas, 'ctx', ctx);
     if (!ctx) return;
 
     console.log('Applying pink filter with intensity:', intensity);
-    
+
     try {
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       // Always draw original image first
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      
+
       // Apply pink overlay with full coverage at 100%
       if (intensity === 100) {
         ctx.fillStyle = '#d717a9'; // Solid hot pink
@@ -51,7 +50,7 @@ export default function Frame() {
       } else {
         // Calculate alpha with exponential curve for better perceptual intensity
         const baseAlpha = 0.1; Math.pow(intensity / 100, 0.7); // More aggressive at lower values
-        
+
         // Smooth transition between 95-100% intensity
         const transitionStart = 50;
         const transitionFactor = Math.min(Math.max((intensity - transitionStart) / (100 - transitionStart), 0), 1);
@@ -62,7 +61,7 @@ export default function Frame() {
         ctx.fillStyle = `rgba(215, 23, 169, ${alpha})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
-      
+
       // Reset composite operation
       ctx.globalCompositeOperation = 'source-over';
     } catch (error) {
@@ -71,17 +70,17 @@ export default function Frame() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     }
-    
+
     setImageLoaded(true);
   }, [canvasRef]);
-  
+
   // Setup canvas context and resize observer
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.imageSmoothingEnabled = true;
@@ -97,7 +96,7 @@ export default function Frame() {
     if (canvas.parentElement) {
       resizeObserver.observe(canvas.parentElement);
     }
-    
+
     // Set up passive touch event listeners for better mobile performance
     const sliderElement = document.querySelector('input[type="range"]');
     if (sliderElement) {
@@ -105,7 +104,7 @@ export default function Frame() {
       const emptyHandler = () => {};
       sliderElement.addEventListener('touchstart', emptyHandler, options);
       sliderElement.addEventListener('touchmove', emptyHandler, options);
-      
+
       return () => {
         resizeObserver.disconnect();
         if (sliderElement) {
@@ -114,10 +113,10 @@ export default function Frame() {
         }
       };
     }
-    
+
     return () => resizeObserver.disconnect();
   }, []);
-  
+
   // Load and process profile image when URL changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -125,27 +124,27 @@ export default function Frame() {
     console.log('profileImage:', profileImage);
     console.log('canvasRef:', canvasRef.current);
     if (!profileImage || !canvasRef.current) return;
-    
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    
+
     img.onload = () => {
       console.log('Successfully loaded profile image from:', profileImage);
       console.log('Image dimensions:', img.width, 'x', img.height);
       applyPinkFilter(img, intensity);
     };
-    
+
     img.onerror = () => {
       console.error('Error loading image from:', profileImage);
       console.log('Attempting fallback loading strategies...');
       setImageLoaded(false);
-      
+
       // Try alternative CORS proxy if first attempt failed
       if (profileImage && profileImage.startsWith('https://corsproxy.io')) {
         console.log('First CORS proxy failed, trying alternative...');
         const originalUrl = decodeURIComponent(profileImage.replace('https://corsproxy.io/?', ''));
         const alternativeProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
-        
+
         const retryImg = new Image();
         retryImg.crossOrigin = 'anonymous';
         retryImg.onload = () => {
@@ -160,7 +159,7 @@ export default function Frame() {
         loadFallbackImage();
       }
     };
-    
+
     // Helper function to load fallback image
     const loadFallbackImage = () => {
       const fallbackImg = new Image();
@@ -169,22 +168,22 @@ export default function Frame() {
         applyPinkFilter(fallbackImg, intensity);
       };
     };
-    
+
     img.src = profileImage;
   }, [profileImage, applyPinkFilter, intensity]);
-  
+
   // Update filter when intensity changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!profileImage || !imageLoaded) return;
-    
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    
+
     img.onload = () => {
       applyPinkFilter(img, intensity);
     };
-    
+
     img.src = profileImage;
   }, [intensity, applyPinkFilter, profileImage, imageLoaded]);
 
@@ -205,7 +204,7 @@ export default function Frame() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const loadFallbackProfileImage = () => {
       const fallbackImageUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZTRlNiIvPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjgwIiByPSI1MCIgZmlsbD0iI2ZiZDVkYiIvPjxyZWN0IHg9IjY1IiB5PSIxNDAiIHdpZHRoPSI3MCIgaGVpZ2h0PSIzMCIgcng9IjE1IiBmaWxsPSIjZmJkNWRiIi8+PHRleHQgeD0iNTAlIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2VjNDg5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGlua2lmeSBQcm9maWxlPC90ZXh0Pjwvc3ZnPg==';
       setProfileImage(fallbackImageUrl);
@@ -232,7 +231,7 @@ export default function Frame() {
           loadFallbackProfileImage();
           return;
         }
-        
+
         console.log('Profile image URL:', imageUrl);
         // Validate URL format
         let isValidUrl = false;
@@ -242,13 +241,13 @@ export default function Frame() {
         } catch (e) {
           console.error("Invalid URL format:", imageUrl);
         }
-        
+
         if (!isValidUrl) {
           console.error("Invalid image URL format");
           loadFallbackProfileImage();
           return;
         }
-        
+
         setProfileImage(imageUrl);
 
         // If frame isn't already added, prompt user to add it
@@ -273,12 +272,12 @@ export default function Frame() {
         loadFallbackProfileImage();
       }
     };
-    
+
     if (sdk && !isSDKLoaded) {
       console.log("Initializing Frame SDK");
       setIsSDKLoaded(true);
       load();
-      
+
       // Clean up event listeners when component unmounts
       return () => {
         sdk.removeAllListeners();
@@ -289,14 +288,14 @@ export default function Frame() {
   // Sync with localStorage and URL parameters on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     // This ensures the code only runs on the client side
     const syncIntensity = () => {
       try {
         // First check URL parameters (highest priority)
         const params = new URLSearchParams(window.location.search);
         const intensityParam = params.get('intensity');
-        
+
         if (intensityParam) {
           const intensityValue = parseInt(intensityParam, 10);
           if (!isNaN(intensityValue) && intensityValue >= 0 && intensityValue <= 100) {
@@ -306,7 +305,7 @@ export default function Frame() {
             return; // URL param takes precedence
           }
         }
-        
+
         // Then check localStorage if no valid URL param
         const savedIntensity = localStorage.getItem('pinkify-intensity');
         if (savedIntensity) {
@@ -325,7 +324,7 @@ export default function Frame() {
 
     // Only run in browser environment
     syncIntensity();
-    
+
     // Add responsive testing listener for development
     if (process.env.NODE_ENV ===  'development') {
       const updateDimensions = () => {
@@ -334,20 +333,20 @@ export default function Frame() {
           dimensionDisplay.textContent = `${window.innerWidth}×${window.innerHeight}`;
         }
       };
-      
+
       window.addEventListener('resize', updateDimensions);
       updateDimensions(); // Initial call
-      
+
       return () => {
         window.removeEventListener('resize', updateDimensions);
       };
     }
   }, []);
-  
+
   // Sync to localStorage whenever intensity changes
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     try {
       localStorage.setItem('pinkify-intensity', intensity.toString());
     } catch (error) {
@@ -364,8 +363,7 @@ export default function Frame() {
   }
 
   return (
-    <>
-      <div 
+      <div
         className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
         style={{
           // @ts-expect-error any
@@ -411,14 +409,14 @@ export default function Frame() {
                       {profileImage ? "Processing image..." : "Initializing frame..."}
                     </div>
                     <div className="mt-2 text-xs text-gray-400 max-w-[200px] text-center">
-                      {profileImage ? 
-                        "Applying pink filter to your profile picture" : 
+                      {profileImage ?
+                        "Applying pink filter to your profile picture" :
                         "Open in Farcaster to pinkify your profile image"}
                     </div>
                   </div>
                 </div>
               )}
-              
+
               <style jsx global>{`
                 @keyframes fadeIn {
                   from { opacity: 0; transform: scale(0.9); }
@@ -446,7 +444,7 @@ export default function Frame() {
                 }
               `}</style>
             </div>
-            
+
             {profileImage && imageLoaded && (
               <div className="mt-2 text-sm text-center text-gray-500 flex items-center justify-center gap-1">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
@@ -456,7 +454,7 @@ export default function Frame() {
                 <span>Profile image loaded successfully</span>
               </div>
             )}
-            
+
             {!profileImage && isSDKLoaded && (
               <div className="mt-4 p-3 bg-pink-50 border border-pink-200 rounded-lg text-sm text-pink-700">
                 <div className="flex items-start gap-2">
@@ -474,13 +472,13 @@ export default function Frame() {
                 </div>
               </div>
             )}
-            
+
             {!isSDKLoaded && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg">
                 <div className="text-lg font-medium">Initializing Frame SDK...</div>
               </div>
             )}
-              
+
             {/* Responsive testing overlay - only visible in development */}
             {process.env.NODE_ENV === 'development' && (
               <div className="fixed bottom-2 right-2 z-50 bg-black/80 text-white text-xs px-2 py-1 rounded-md flex flex-col items-end">
@@ -512,7 +510,7 @@ export default function Frame() {
                     margin-left: auto;
                   }
                 }
-                
+
                 /* Landscape phones */
                 @media screen and (max-height: 428px) and (orientation: landscape) {
                   .canvas-container {
@@ -524,7 +522,7 @@ export default function Frame() {
                     justify-content: space-between;
                   }
                 }
-                
+
                 /* Tablets and larger */
                 @media screen and (min-width: 768px) {
                   .slider-container {
@@ -532,34 +530,34 @@ export default function Frame() {
                     margin: 0 auto;
                   }
                 }
-                
+
                 /* Additional responsive breakpoints for testing */
                 @media screen and (min-width: 640px) {
                   .sm-indicator { display: block; }
                 }
-                
+
                 @media screen and (min-width: 768px) {
                   .md-indicator { display: block; }
                 }
-                
+
                 @media screen and (min-width: 1024px) {
                   .lg-indicator { display: block; }
                 }
-                
+
                 @media screen and (min-width: 1280px) {
                   .xl-indicator { display: block; }
                 }
-                
+
                 @media screen and (min-width: 1536px) {
                   .xxl-indicator { display: block; }
                 }
-                
+
                 /* Orientation-specific styles */
                 @media screen and (orientation: portrait) {
                   .portrait-indicator { display: inline; }
                   .landscape-indicator { display: none; }
                 }
-                
+
                 @media screen and (orientation: landscape) {
                   .portrait-indicator { display: none; }
                   .landscape-indicator { display: inline; }
@@ -586,42 +584,165 @@ export default function Frame() {
                       appearance: 'none',
                     }}
                   />
-                 
+
                 </div>
                 <span className="text-md min-w-8 slider-value">{intensity}%</span>
               </div>
-              
+
               <div className="controls-container" data-testid="download-container">
                 <button
                   data-testid="download-button"
-                  onClick={async () => {
-                    if (!context?.user?.pfpUrl || !intensity) return;
-
+                  onClick={() => {
                     try {
-                      setDownloadState('pending');
-                      
-                      // Sanitize filename and create URL params
-                      const fid = context.user.fid || 'profile';
-                      const sanitizedFid = fid.toString().replace(/[^a-z0-9]/gi, '_').substring(0, 40);
-                      const filename = `pinkified-${sanitizedFid}-${intensity}pc.png`;
+                      if (!profileImage || !imageLoaded) return;
 
-                      // Construct the API URL with parameters
-                      const downloadUrl = new URL('/api/download-image', process.env.NEXT_PUBLIC_URL);
-                      downloadUrl.searchParams.set('url', context.user.pfpUrl);
+                      // Generate unique download URL with current parameters
+                      const downloadUrl = new URL('/api/download', window.location.origin);
+                      downloadUrl.searchParams.set('imageUrl', profileImage);
                       downloadUrl.searchParams.set('intensity', intensity.toString());
-                      downloadUrl.searchParams.set('filename', filename);
+                      downloadUrl.searchParams.set('t', Date.now().toString());
 
-                      // Open the generated URL using Frame SDK
-                      sdk.actions.openUrl(downloadUrl.toString());
+                      // Open in new window to trigger download
+                      window.location.href = downloadUrl.toString();
 
-                      // Show success state for 2 seconds
-                      setDownloadState('success');
-                      setTimeout(() => setDownloadState('idle'), 2000);
+                      // Show animated feedback toast for mobile users
+                      const toast = document.createElement('div');
+                      toast.textContent = 'Image downloaded!';
+                      toast.style.position = 'fixed';
+                      toast.style.bottom = '20px';
+                      toast.style.left = '50%';
+                      toast.style.transform = 'translateX(-50%) translateY(20px)';
+                      toast.style.backgroundColor = '#ec4899';
+                      toast.style.color = 'white';
+                      toast.style.padding = '10px 20px';
+                      toast.style.borderRadius = '8px';
+                      toast.style.zIndex = '1000';
+                      toast.style.boxShadow = '0 4px 12px rgba(236, 72, 153, 0.3)';
+                      toast.style.fontWeight = '600';
+                      toast.style.fontSize = '14px';
+                      toast.style.transition =  'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                      toast.style.opacity = '0';
+                      toast.style.display = 'flex';
+                      toast.style.alignItems = 'center';
+                      toast.style.gap = '8px';
 
-                    } catch (error) {
-                      console.error('Download failed:', error);
-                      setDownloadState('error');
-                      setTimeout(() => setDownloadState('idle'), 2000);
+                      // Add success icon to toast
+                      const checkIcon = document.createElement('span');
+                      checkIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                      toast.insertBefore(checkIcon, toast.firstChild);
+
+                      document.body.appendChild(toast);
+
+                      // Animate toast in
+                      requestAnimationFrame(() => {
+                        toast.style.opacity = '1';
+                        toast.style.transform = 'translateX(-50%) translateY(0)';
+                      });
+
+                      // Animate toast out
+                      setTimeout(() => {
+                        toast.style.opacity = '0';
+                        toast.style.transform = 'translateX(-50%) translateY(-20px)';
+                        setTimeout(() => {
+                          if (document.body.contains(toast)) {
+                            document.body.removeChild(toast);
+                          }
+                        }, 300);
+                      }, 2000);
+
+                      // Track download in analytics if available
+                      try {
+                        if (typeof window !== 'undefined' && 'posthog' in window) {
+                          // Use proper TypeScript declaration for window.posthog
+                          const posthog = (window as any).posthog;
+                          if (posthog && typeof posthog.capture === 'function') {
+                            posthog.capture('download_image', {
+                              intensity: intensity,
+                              platform: 'farcaster_frame'
+                            });
+                          }
+                        }
+                      } catch (analyticsError) {
+                        console.error('Analytics error:', analyticsError);
+                        // Don't let analytics errors break the download functionality
+                      }
+                  } catch (error) {
+                      console.error('Error downloading image:', error);
+
+                      // Show animated error toast
+                      const errorToast = document.createElement('div');
+                      errorToast.textContent = 'Download failed. Try again.';
+                      errorToast.style.position = 'fixed';
+                      errorToast.style.bottom = '20px';
+                      errorToast.style.left = '50%';
+                      errorToast.style.transform = 'translateX(-50%) translateY(20px)';
+                      errorToast.style.backgroundColor = '#ef4444';
+                      errorToast.style.color = 'white';
+                      errorToast.style.padding = '10px 20px';
+                      errorToast.style.borderRadius = '8px';
+                      errorToast.style.zIndex = '1000';
+                      errorToast.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
+                      errorToast.style.fontWeight = '600';
+                      errorToast.style.fontSize = '14px';
+                      errorToast.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                      errorToast.style.opacity = '0';
+                      errorToast.style.display = 'flex';
+                      errorToast.style.alignItems = 'center';
+                      errorToast.style.gap = '8px';
+
+                      // Add error icon to toast
+                      const errorIcon = document.createElement('span');
+                      errorIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+                      errorToast.insertBefore(errorIcon, errorToast.firstChild);
+
+                      document.body.appendChild(errorToast);
+
+                      // Animate error toast in
+                      requestAnimationFrame(() => {
+                        errorToast.style.opacity = '1';
+                        errorToast.style.transform = 'translateX(-50%) translateY(0)';
+                      });
+
+                      // Animate error toast out with shake effect
+                      setTimeout(() => {
+                        errorToast.style.animation = 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both';
+                        errorToast.style.transform = 'translateX(-50%) translateY(0)';
+
+                        // Add shake keyframes
+                        const style = document.createElement('style');
+                        style.innerHTML = `
+                          @keyframes shake {
+                            10%, 90% { transform: translateX(-51%) translateY(0); }
+                            20%, 80% { transform: translateX(-49%) translateY(0); }
+                            30%, 50%, 70% { transform: translateX(-52%) translateY(0); }
+                            40%, 60% { transform: translateX(-48%) translateY(0); }
+                          }
+                        `;
+                        document.head.appendChild(style);
+
+                        setTimeout(() => {
+                          errorToast.style.opacity = '0';
+                          errorToast.style.transform = 'translateX(-50%) translateY(-20px)';
+                          setTimeout(() => {
+                            if (document.body.contains(errorToast)) {
+                              document.body.removeChild(errorToast);
+                            }
+                            if (document.head.contains(style)) {
+                              document.head.removeChild(style);
+                            }
+                          }, 300);
+                        }, 1000);
+                      }, 2000);
+
+                      // Try alternative download method for mobile
+                      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                        try {
+                          // Open image in new tab as fallback
+                          window.open(canvasRef.current?.toDataURL('image/png'), '_blank');
+                        } catch (e) {
+                          console.error('Fallback download failed:', e);
+                        }
+                      }
                     }
                   }}
                   disabled={!imageLoaded || downloadState === 'pending'}
@@ -666,6 +787,5 @@ export default function Frame() {
           </div>
         </main>
       </div>
-    </>
   );
 }
