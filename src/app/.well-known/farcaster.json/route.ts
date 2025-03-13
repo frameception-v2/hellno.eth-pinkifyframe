@@ -16,11 +16,11 @@ export async function GET() {
       name: PROJECT_TITLE,
       iconUrl: `${appUrl}/icon.png`,
       homeUrl: appUrl,
-      imageUrl: `${appUrl}/frames/hello/opengraph-image`,
+      imageUrl: `${appUrl}/opengraph-image`,
       buttonTitle: "Launch Frame",
       splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#f7f7f7",
-      webhookUrl: `${appUrl}/api/webhook`,
+      splashBackgroundColor: "#d717a9",
+      // webhookUrl: `${appUrl}/api/webhook`,
     },
   };
 
