@@ -42,9 +42,11 @@ export default function Frame() {
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
-        const alpha = intensity / 100;
+        // ai! improve this alpha scaling to be more aggressive at lower intensities
+        // and less jumpy transition from 99 to 100
+        const alpha = (intensity / 100);
         ctx.globalCompositeOperation = 'multiply';
-        ctx.fillStyle = `rgba(215, 23, 169, ${alpha * 1.5})`; // Stronger pink color
+        ctx.fillStyle = `rgba(215, 23, 169, ${alpha * 2})`; // Stronger pink color
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       
