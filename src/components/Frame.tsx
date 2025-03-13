@@ -603,9 +603,13 @@ export default function Frame() {
                       downloadUrl.searchParams.set('color', selectedColor);
                       downloadUrl.searchParams.set('t', Date.now().toString());
 
-                      // Open in new window to trigger download
-                      // ai! this doesn't work in the frame / iframe / miniapp environment, simplify
-                      window.location.href = downloadUrl.toString();
+                      // Create a hidden anchor element for download
+                      const a = document.createElement('a');
+                      a.href = downloadUrl.toString();
+                      a.download = `${selectedColor.toLowerCase()}-profile.png`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
 
                       // Show animated feedback toast for mobile users
                       const toast = document.createElement('div');
