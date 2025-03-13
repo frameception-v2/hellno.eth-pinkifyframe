@@ -35,11 +35,13 @@ export async function GET(request: Request) {
     const g = parseInt(colorHex.slice(3, 5), 16);
     const b = parseInt(colorHex.slice(5, 7), 16);
     
-    // Match frontend's alpha calculation
-    let alpha = Math.pow(intensity / 100, 0.7);
+    // Match frontend's alpha calculation exactly
+    const baseAlpha = Math.pow(intensity / 100, 0.7);
+    let alpha = baseAlpha;
     if (intensity > 50) {
-      const transitionFactor = (intensity - 50) / 50;
-      alpha = alpha * (1 - transitionFactor) + transitionFactor;
+      const transitionStart = 50;
+      const transitionFactor = Math.min(Math.max((intensity - transitionStart) / (100 - transitionStart), 0), 1);
+      alpha = baseAlpha * (1 - transitionFactor) + transitionFactor;
     }
     
     // Get image metadata to determine dimensions
@@ -52,7 +54,12 @@ export async function GET(request: Request) {
       .ensureAlpha()
       // Process using linear color space to match Canvas
       .linear()
-      // Apply color overlay with proper blending
+      // First apply original image
+      .composite([{
+        input: Buffer.from(buffer),
+        blend: 'src-over'
+      }])
+      // Apply color overlay with frontend-equivalent blending
       .composite([{
         input: {
           create: {
@@ -64,7 +71,7 @@ export async function GET(request: Request) {
               : { r, g, b, alpha: alpha }
           }
         },
-        blend: intensity === 100 ? 'src-over' : 'multiply',
+        blend: intensity === 100 ? 'src-over' : intensity > 50 ? 'src-over' : 'multiply',
         tile: true
       }])
       // Convert back to sRGB for web output
