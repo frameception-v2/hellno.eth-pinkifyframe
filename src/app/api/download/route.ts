@@ -42,15 +42,34 @@ export async function GET(request: Request) {
       alpha = alpha * (1 - transitionFactor) + transitionFactor;
     }
     
+    // Get image metadata to determine dimensions
+    const metadata = await sharp(Buffer.from(buffer)).metadata();
+    const width = metadata.width || 1000;
+    const height = metadata.height || 1000;
+    
     const processedImage = await sharp(Buffer.from(buffer))
+      // First apply color overlay with appropriate blend mode
       .composite([{
+        input: {
+          create: {
+            width,
+            height,
+            channels: 4,
+            background: colorHex
+          }
+        },
+        blend: intensity === 100 ? 'dest-over' : 'multiply',
+        tile: true
+      }])
+      // Then apply opacity layer if not at 100% intensity
+      .composite(intensity < 100 ? [{
         input: Buffer.from(
           `<svg width="100%" height="100%">
-            <rect width="100%" height="100%" fill="rgba(${r}, ${g}, ${b}, ${alpha})" />
+            <rect width="100%" height="100%" fill="rgba(255,255,255,${1 - alpha})" />
           </svg>`
         ),
-        blend: intensity === 100 ? 'over' : 'multiply'
-      }])
+        blend: 'dest-in'
+      }] : [])
       .png()
       .toBuffer();
 
