@@ -48,28 +48,27 @@ export async function GET(request: Request) {
     const height = metadata.height || 1000;
     
     const processedImage = await sharp(Buffer.from(buffer))
-      // First apply color overlay with appropriate blend mode
+      // First ensure alpha channel exists
+      .ensureAlpha()
+      // Process using linear color space to match Canvas
+      .linear()
+      // Apply color overlay with proper blending
       .composite([{
         input: {
           create: {
             width,
             height,
             channels: 4,
-            background: colorHex
+            background: intensity === 100 
+              ? { r, g, b, alpha: 1 } 
+              : { r, g, b, alpha: alpha }
           }
         },
-        blend: intensity === 100 ? 'dest-over' : 'multiply',
+        blend: intensity === 100 ? 'src-over' : 'multiply',
         tile: true
       }])
-      // Then apply opacity layer if not at 100% intensity
-      .composite(intensity < 100 ? [{
-        input: Buffer.from(
-          `<svg width="100%" height="100%">
-            <rect width="100%" height="100%" fill="rgba(255,255,255,${1 - alpha})" />
-          </svg>`
-        ),
-        blend: 'dest-in'
-      }] : [])
+      // Convert back to sRGB for web output
+      .gamma()
       .png()
       .toBuffer();
 
