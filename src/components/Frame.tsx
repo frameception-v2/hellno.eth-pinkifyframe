@@ -600,7 +600,7 @@ export default function Frame() {
 
                       // Construct the API URL with parameters
                       const downloadUrl = new URL('/api/download-image', process.env.NEXT_PUBLIC_URL);
-                      downloadUrl.searchParams.set('url', encodeURIComponent(context.user.pfpUrl));
+                      downloadUrl.searchParams.set('url', context.user.pfpUrl);
                       downloadUrl.searchParams.set('intensity', intensity.toString());
                       downloadUrl.searchParams.set('filename', filename);
 

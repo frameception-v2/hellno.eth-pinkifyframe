@@ -1,46 +1,63 @@
 import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 
-export const dynamic = 'force-dynamic'; // Prevent static optimization
+export const dynamic = 'force-dynamic';
+
+// Helper function for error responses
+const errorResponse = (message: string, status: number) => {
+  return new Response(JSON.stringify({ error: 'Processing failed', message }), {
+    status,
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const imageUrl = searchParams.get('url');
+    const encodedUrl = searchParams.get('url');
     const intensity = Number(searchParams.get('intensity'));
     const filename = searchParams.get('filename') || 'pinkified-profile.png';
 
     // Validate inputs
-    if (!imageUrl || isNaN(intensity) || intensity < 0 || intensity > 100) {
-      return new Response(JSON.stringify({ 
-        error: 'Invalid parameters',
-        message: 'Please provide valid image URL and intensity (0-100)' 
-      }), { 
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (!encodedUrl || isNaN(intensity) || intensity < 0 || intensity > 100) {
+      return errorResponse('Invalid parameters - need URL and intensity (0-100)', 400);
     }
 
-    // Fetch original image with timeout
+    // Decode and validate URL
+    let imageUrl: string;
+    try {
+      imageUrl = decodeURIComponent(encodedUrl);
+      new URL(imageUrl); // Validate URL format
+    } catch (error) {
+      return errorResponse('Invalid URL format after decoding', 400);
+    }
+
+    // Validate allowed domains
+    const allowedDomains = [
+      'imagedelivery.net',
+      'pbs.twimg.com',
+      'warpcast.com',
+      'res.cloudinary.com',
+      'i.seadn.io'
+    ];
+    
+    const urlHost = new URL(imageUrl).hostname;
+    if (!allowedDomains.some(d => urlHost.endsWith(d))) {
+      return errorResponse('Image domain not allowed', 403);
+    }
+
+    // Fetch image with timeout
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
     
     const response = await fetch(imageUrl, { 
       signal: controller.signal,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; Frame-Pinkifier/1.0)'
-      }
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Frame-Pinkifier/1.0)' }
     });
     clearTimeout(timeout);
 
     if (!response.ok) {
-      return new Response(JSON.stringify({
-        error: 'Image fetch failed',
-        message: `Failed to fetch image from ${imageUrl} (status ${response.status})`
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return errorResponse(`Failed to fetch image (HTTP ${response.status})`, 400);
     }
 
     // Process image with sharp
@@ -63,19 +80,13 @@ export async function GET(request: Request) {
       headers: {
         'Content-Type': 'image/png',
         'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Cache-Control': 'public, max-age=3600',
         'CDN-Cache-Control': 'public, max-age=3600'
       }
     });
 
   } catch (error) {
     console.error('Image processing error:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Processing failed',
-      message: error instanceof Error ? error.message : 'Unknown error occurred'
-    }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500);
   }
 }
