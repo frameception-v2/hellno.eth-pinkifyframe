@@ -41,11 +41,17 @@ export default function Frame() {
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
-        // ai!  improve this alpha scaling to be more aggressive at lower intensities
-        // and less jumpy transition from 99 to 100
-        const alpha = (intensity / 100);
-        ctx.globalCompositeOperation = 'multiply';
-        ctx.fillStyle = `rgba(215, 23, 169, ${alpha * 2})`; // Stronger pink color
+        // Calculate alpha with exponential curve for better perceptual intensity
+        const baseAlpha = Math.pow(intensity / 100, 0.7); // More aggressive at lower values
+        
+        // Smooth transition between 95-100% intensity
+        const transitionStart = 95;
+        const transitionFactor = Math.min(Math.max((intensity - transitionStart) / (100 - transitionStart), 0), 1);
+        const alpha = baseAlpha * (1 - transitionFactor) + transitionFactor;
+
+        // Blend composite operations during transition
+        ctx.globalCompositeOperation = transitionFactor > 0 ? 'source-over' : 'multiply';
+        ctx.fillStyle = `rgba(215, 23, 169, ${alpha})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       
