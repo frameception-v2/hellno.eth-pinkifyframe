@@ -42,10 +42,10 @@ export default function Frame() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
         // Calculate alpha with exponential curve for better perceptual intensity
-        const baseAlpha = Math.pow(intensity / 100, 0.7); // More aggressive at lower values
+        const baseAlpha = 0.1; Math.pow(intensity / 100, 0.7); // More aggressive at lower values
         
         // Smooth transition between 95-100% intensity
-        const transitionStart = 95;
+        const transitionStart = 50;
         const transitionFactor = Math.min(Math.max((intensity - transitionStart) / (100 - transitionStart), 0), 1);
         const alpha = baseAlpha * (1 - transitionFactor) + transitionFactor;
 
@@ -558,7 +558,7 @@ export default function Frame() {
                 }
               `}</style>
               <div className="flex items-center gap-2 slider-container" data-testid="intensity-slider">
-                <span className="text-sm font-medium min-w-16">Pink Intensity</span>
+                <span className="text-xl font-medium min-w-16">Pink Tribe Intensity</span>
                 <div className="relative w-full">
                   <input
                     type="range"
@@ -568,11 +568,10 @@ export default function Frame() {
                     onChange={(e) => {
                       const newValue = parseInt(e.target.value, 10);
                       setIntensity(newValue);
-                      // localStorage sync is now handled by the dedicated useEffect
                     }}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                    className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #ffc0cb ${intensity}%, #f3f4f6 ${intensity}%)`,
+                      background: `linear-gradient(to right, #d717a9 ${intensity}%, #f3f4f6 ${intensity}%)`,
                       touchAction: 'none', // Prevent scrolling when using the slider
                       // Custom thumb styling for better touch targets
                       WebkitAppearance: 'none',
@@ -581,7 +580,7 @@ export default function Frame() {
                   />
                  
                 </div>
-                <span className="text-sm min-w-8 slider-value">{intensity}%</span>
+                <span className="text-md min-w-8 slider-value">{intensity}%</span>
               </div>
               
               <div className="controls-container" data-testid="download-container">
@@ -597,7 +596,7 @@ export default function Frame() {
                       
                       // Get canvas data with maximum quality
                       const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
-                      console.log('dataUrl:', dataUrl);
+                      // console.log('dataUrl:', dataUrl);
                       // Open image URL using Frame SDK
                       sdk.actions.openUrl(dataUrl);
                       
