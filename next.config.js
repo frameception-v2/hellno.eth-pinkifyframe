@@ -20,6 +20,8 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+    formats: ['image/webp'],
+    minimumCacheTTL: 3600,
   },
   webpack: (config) => {
     // Handle the Frame SDK package which may cause issues during build
@@ -32,6 +34,9 @@ const nextConfig = {
     
     return config;
   },
+  experimental: {
+    serverComponentsExternalPackages: ['sharp']
+  }
 };
 
 module.exports = nextConfig;
