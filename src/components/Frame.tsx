@@ -5,7 +5,8 @@ import sdk, { AddFrame } from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
 import type { FrameContext } from "@farcaster/frame-node";
 import { ColorSelect } from "./ui/color-select";
-import { COLOR_MAP, ColorName } from "~/lib/colors";
+import { COLOR_MAP, ColorName, getButtonClassnameForColor } from "~/lib/colors";
+import { cn } from "~/lib/utils";
 
 export default function Frame() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
@@ -16,7 +17,7 @@ export default function Frame() {
       const saved = localStorage.getItem('pinkify-intensity');
       return saved ? Math.min(Math.max(parseInt(saved), 0), 100) : 50;
     }
-    return 50;
+    return 69;
   });
   const [selectedColor, setSelectedColor] = useState<ColorName>("Pink");
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
@@ -194,8 +195,17 @@ export default function Frame() {
     >
       <main className="grid place-items-center px-4 py-4 md:py-8">
         <div className="w-full max-w-[512px] mx-auto relative">
+
+            {/* Color selection */}
+            <div className="mt-4">
+              <h2 className="text-xl font-medium mb-2">Pick Tribe</h2>
+              <ColorSelect 
+                selectedColor={selectedColor}
+                onColorChange={setSelectedColor}
+              />
+            </div>
           {/* Image display area */}
-          <div className="relative">
+          <div className="mt-4 relative">
             {processedImageUrl ? (
               <div className="relative aspect-square">
                 <img
@@ -316,16 +326,6 @@ export default function Frame() {
               </div>
               <span className="text-md min-w-8 slider-value">{intensity}%</span>
             </div>
-
-            {/* Color selection */}
-            <div className="mt-4">
-              <h2 className="text-xl font-medium mb-2">Pick Tribe</h2>
-              <ColorSelect 
-                selectedColor={selectedColor}
-                onColorChange={setSelectedColor}
-              />
-            </div>
-
             {/* Download button */}
             <div className="controls-container" data-testid="download-container">
               <button
@@ -449,7 +449,7 @@ export default function Frame() {
                   }
                 }}
                 disabled={!processedImageUrl || isLoading}
-                className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                className={cn(getButtonClassnameForColor(selectedColor), "mt-2 px-4 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed after:transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2")}
                 aria-label={`Download ${selectedColor.toLowerCase()}ified profile image`}
               >
                 {isLoading ? (
