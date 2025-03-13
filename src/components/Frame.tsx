@@ -593,7 +593,6 @@ export default function Frame() {
                       // Get canvas data with maximum quality
                       const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
                       console.log('dataUrl:', dataUrl);
-                      // ai! change this download pattern to use the sdk and the openUrl method instead
                       // Open image URL using Frame SDK
                       sdk.actions.openUrl(dataUrl);
                       
