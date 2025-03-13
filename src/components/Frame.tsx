@@ -4,6 +4,8 @@ import { useEffect, useCallback, useState, useRef } from "react";
 import sdk, { AddFrame } from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
 import type { FrameContext } from "@farcaster/frame-node";
+import { ColorSelect } from "./ui/color-select";
+import { COLOR_MAP, ColorName } from "@/lib/colors";
 
 export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -18,13 +20,14 @@ export default function Frame() {
     }
     return 50;
   });
+  const [selectedColor, setSelectedColor] = useState<ColorName>("Pink");
   const [imageLoaded, setImageLoaded] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const [addFrameResult, setAddFrameResult] = useState("");
   const [downloadState, setDownloadState] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
 
-  // Function to apply pink filter to the image
+  // Function to apply color filter to the image
   const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
     if (!canvasRef.current) return;
 
@@ -33,7 +36,7 @@ export default function Frame() {
     console.log('applyPinkFilter canvas', canvas, 'ctx', ctx);
     if (!ctx) return;
 
-    console.log('Applying pink filter with intensity:', intensity);
+    console.log(`Applying ${selectedColor} filter with intensity:`, intensity);
 
     try {
       // Clear canvas
@@ -42,9 +45,17 @@ export default function Frame() {
       // Always draw original image first
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // Apply pink overlay with full coverage at 100%
+      // Get the selected color from the color map
+      const colorHex = COLOR_MAP[selectedColor];
+      
+      // Convert hex to RGB for rgba format
+      const r = parseInt(colorHex.slice(1, 3), 16);
+      const g = parseInt(colorHex.slice(3, 5), 16);
+      const b = parseInt(colorHex.slice(5, 7), 16);
+
+      // Apply color overlay with full coverage at 100%
       if (intensity === 100) {
-        ctx.fillStyle = '#d717a9'; // Solid hot pink
+        ctx.fillStyle = colorHex; // Solid color
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
@@ -58,7 +69,7 @@ export default function Frame() {
 
         // Blend composite operations during transition
         ctx.globalCompositeOperation = transitionFactor > 0 ? 'source-over' : 'multiply';
-        ctx.fillStyle = `rgba(215, 23, 169, ${alpha})`;
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
 
@@ -72,7 +83,7 @@ export default function Frame() {
     }
 
     setImageLoaded(true);
-  }, [canvasRef]);
+  }, [canvasRef, selectedColor]);
 
   // Setup canvas context and resize observer
   useEffect(() => {
@@ -564,7 +575,7 @@ export default function Frame() {
                 }
               `}</style>
               <div className="flex items-center gap-2 slider-container" data-testid="intensity-slider">
-                <span className="text-xl font-medium min-w-16">Pink Tribe Intensity</span>
+                <span className="text-xl font-medium min-w-16">{selectedColor} Intensity</span>
                 <div className="relative w-full">
                   <input
                     type="range"
@@ -577,7 +588,7 @@ export default function Frame() {
                     }}
                     className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, #d717a9 ${intensity}%, #f3f4f6 ${intensity}%)`,
+                      background: `linear-gradient(to right, ${COLOR_MAP[selectedColor]} ${intensity}%, #f3f4f6 ${intensity}%)`,
                       touchAction: 'none', // Prevent scrolling when using the slider
                       // Custom thumb styling for better touch targets
                       WebkitAppearance: 'none',
@@ -587,6 +598,14 @@ export default function Frame() {
 
                 </div>
                 <span className="text-md min-w-8 slider-value">{intensity}%</span>
+              </div>
+
+              <div className="mt-4">
+                <h2 className="text-xl font-medium mb-2">Select Theme Color</h2>
+                <ColorSelect 
+                  selectedColor={selectedColor}
+                  onColorChange={setSelectedColor}
+                />
               </div>
 
               <div className="controls-container" data-testid="download-container">
@@ -600,6 +619,7 @@ export default function Frame() {
                       const downloadUrl = new URL('/api/download', window.location.origin);
                       downloadUrl.searchParams.set('imageUrl', profileImage);
                       downloadUrl.searchParams.set('intensity', intensity.toString());
+                      downloadUrl.searchParams.set('color', selectedColor);
                       downloadUrl.searchParams.set('t', Date.now().toString());
 
                       // Open in new window to trigger download
@@ -658,6 +678,7 @@ export default function Frame() {
                           if (posthog && typeof posthog.capture === 'function') {
                             posthog.capture('download_image', {
                               intensity: intensity,
+                              color: selectedColor,
                               platform: 'farcaster_frame'
                             });
                           }
@@ -747,7 +768,7 @@ export default function Frame() {
                   }}
                   disabled={!imageLoaded || downloadState === 'pending'}
                   className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
-                  aria-label="Download pinkified profile image"
+                  aria-label={`Download ${selectedColor.toLowerCase()}ified profile image`}
                 >
                   {downloadState === 'pending' ? (
                     <>
