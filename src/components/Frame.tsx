@@ -195,7 +195,7 @@ export default function Frame() {
       }}
     >
       <main className="grid place-items-center px-4 py-4 md:py-8">
-        <div className="w-full max-w-[512px] mx-auto relative">
+        <div className="items-center justify-center w-full max-w-[512px] mx-auto relative">
             <h1 className="text-3xl font-bold text-center mb-4">{PROJECT_TITLE}</h1>
             <div 
               onClick={() => sdk.actions.viewProfile({ fid: 13596 })} 
@@ -211,8 +211,65 @@ export default function Frame() {
                 onColorChange={setSelectedColor}
               />
             </div>
+
+          {/* Controls section */}
+          <div className="mt-4 flex flex-col gap-3 w-full max-w-[512px]">
+            {/* Responsive layout styles */}
+            <style jsx global>{`
+              @media screen and (max-width: 428px) {
+                .slider-container {
+                  flex-direction: column;
+                  align-items: flex-start;
+                }
+                .slider-value {
+                  margin-left: auto;
+                }
+              }
+              @media screen and (max-height: 428px) and (orientation: landscape) {
+                .controls-container {
+                  flex-direction: row;
+                  align-items: center;
+                  justify-content: space-between;
+                }
+              }
+              @media screen and (min-width: 768px) {
+                .slider-container {
+                  max-width: 80%;
+                  margin: 0 auto;
+                }
+              }
+            `}</style>
+
+            {/* Intensity slider */}
+            <div className="flex items-center gap-2 slider-container" data-testid="intensity-slider">
+              <div className="w-full flex items-center justify-between gap-2">
+              <span className="text-left flex text-xl font-medium min-w-16">{selectedColor} intensifies</span>
+              <span className="text-md min-w-8 slider-value">{intensity}%</span>
+              </div>
+              <div className="relative w-full">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={intensity}
+                  onChange={(e) => {
+                    const newValue = parseInt(e.target.value, 10);
+                    setIntensity(newValue);
+                  }}
+                  className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, ${COLOR_MAP[selectedColor]} ${intensity}%, #f3f4f6 ${intensity}%)`,
+                    touchAction: 'none',
+                    WebkitAppearance: 'none',
+                    appearance: 'none',
+                  }}
+                />
+              </div>
+            </div>
+           
+          </div>
           {/* Image display area */}
-          <div className="mt-4 relative">
+          <div className="mx-auto mt-4 relative">
             {processedImageUrl ? (
               <div className="">
                 <img
@@ -280,60 +337,7 @@ export default function Frame() {
               }
             `}</style>
           </div>
-
-          {/* Controls section */}
-          <div className="mt-4 flex flex-col gap-3 w-full max-w-[512px]">
-            {/* Responsive layout styles */}
-            <style jsx global>{`
-              @media screen and (max-width: 428px) {
-                .slider-container {
-                  flex-direction: column;
-                  align-items: flex-start;
-                }
-                .slider-value {
-                  margin-left: auto;
-                }
-              }
-              @media screen and (max-height: 428px) and (orientation: landscape) {
-                .controls-container {
-                  flex-direction: row;
-                  align-items: center;
-                  justify-content: space-between;
-                }
-              }
-              @media screen and (min-width: 768px) {
-                .slider-container {
-                  max-width: 80%;
-                  margin: 0 auto;
-                }
-              }
-            `}</style>
-
-            {/* Intensity slider */}
-            <div className="flex items-center gap-2 slider-container" data-testid="intensity-slider">
-              <span className="text-left flex text-xl font-medium min-w-16">{selectedColor} intensifies</span>
-              <div className="relative w-full">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={intensity}
-                  onChange={(e) => {
-                    const newValue = parseInt(e.target.value, 10);
-                    setIntensity(newValue);
-                  }}
-                  className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, ${COLOR_MAP[selectedColor]} ${intensity}%, #f3f4f6 ${intensity}%)`,
-                    touchAction: 'none',
-                    WebkitAppearance: 'none',
-                    appearance: 'none',
-                  }}
-                />
-              </div>
-              <span className="text-md min-w-8 slider-value">{intensity}%</span>
-            </div>
-            <div className="w-full controls-container" data-testid="download-container">
+          <div className="mt-4 w-full controls-container" data-testid="download-container">
               <button
                 data-testid="download-button"
                 onClick={() => {
@@ -483,7 +487,6 @@ export default function Frame() {
                 )}
               </button>
             </div>
-          </div>
         </div>
       </main>
     </div>
