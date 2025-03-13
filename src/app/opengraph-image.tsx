@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { PROJECT_TITLE, PROJECT_DESCRIPTION } from "~/lib/constants";
 import { join } from "path";
+import fs from "fs";
 
 export const alt = PROJECT_TITLE;
 export const contentType = "image/png";
