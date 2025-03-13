@@ -588,28 +588,29 @@ export default function Frame() {
                 <button
                   data-testid="download-button"
                   onClick={async () => {
-                    if (!context?.user?.pfpUrl || !intensity || !imageLoaded) return;
-                    
-                    setDownloadState('pending');
+                    if (!context?.user?.pfpUrl || !intensity) return;
+
                     try {
-                      // Sanitize filename
+                      setDownloadState('pending');
+                      
+                      // Sanitize filename and create URL params
                       const fid = context.user.fid || 'profile';
                       const sanitizedFid = fid.toString().replace(/[^a-z0-9]/gi, '_').substring(0, 40);
                       const filename = `pinkified-${sanitizedFid}-${intensity}pc.png`;
 
-                      // Construct API URL with parameters
-                      const apiUrl = new URL('/api/download-image', process.env.NEXT_PUBLIC_URL);
-                      apiUrl.searchParams.set('url', context.user.pfpUrl);
-                      apiUrl.searchParams.set('intensity', intensity.toString());
-                      apiUrl.searchParams.set('filename', filename);
+                      // Construct the API URL with parameters
+                      const downloadUrl = new URL('/api/download-image', process.env.NEXT_PUBLIC_URL);
+                      downloadUrl.searchParams.set('url', encodeURIComponent(context.user.pfpUrl));
+                      downloadUrl.searchParams.set('intensity', intensity.toString());
+                      downloadUrl.searchParams.set('filename', filename);
 
-                      // Open in Frame SDK
-                      sdk.actions.openUrl(apiUrl.toString());
-                      
-                      // Show success state temporarily
+                      // Open the generated URL using Frame SDK
+                      sdk.actions.openUrl(downloadUrl.toString());
+
+                      // Show success state for 2 seconds
                       setDownloadState('success');
                       setTimeout(() => setDownloadState('idle'), 2000);
-                      
+
                     } catch (error) {
                       console.error('Download failed:', error);
                       setDownloadState('error');
