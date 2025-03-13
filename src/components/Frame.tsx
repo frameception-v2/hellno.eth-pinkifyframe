@@ -176,7 +176,8 @@ export default function Frame() {
   if (typeof window === 'undefined') {
     return null; // Return null during SSR
   }
-
+                  
+  const buttonStyle = getButtonClassnameForColor(selectedColor);
   return (
     <div
       className="grid h-screen grid-rows-[auto_1fr] gap-4 overflow-y-hidden"
@@ -326,7 +327,6 @@ export default function Frame() {
               </div>
               <span className="text-md min-w-8 slider-value">{intensity}%</span>
             </div>
-            {/* Download button */}
             <div className="controls-container" data-testid="download-container">
               <button
                 data-testid="download-button"
@@ -449,9 +449,12 @@ export default function Frame() {
                   }
                 }}
                 disabled={!processedImageUrl || isLoading}
+                style={{
+                  backgroundColor: buttonStyle.baseColor,
+                  color: buttonStyle.textColor
+                }}
                 className={cn(
-                  getButtonClassnameForColor(selectedColor), 
-                  "mt-2 px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                  "px-5 py-3 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-105 flex items-center justify-center gap-2"
                 )}
                 aria-label={`Download ${selectedColor.toLowerCase()}ified profile image`}
               >

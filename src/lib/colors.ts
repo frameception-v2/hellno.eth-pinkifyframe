@@ -31,16 +31,30 @@ const darkenColor = (hex: string, percent: number): string => {
   return `#${darkenedR.toString(16).padStart(2, '0')}${darkenedG.toString(16).padStart(2, '0')}${darkenedB.toString(16).padStart(2, '0')}`;
 };
 
-export const getButtonClassnameForColor = (color: string): string => {
-  console.log('getButtonClassnameForColor color', color);
-
+export const getButtonClassnameForColor = (color: string) => {
   // Get the base color from COLOR_MAP
   const baseColor = COLOR_MAP[color as ColorName] || COLOR_MAP.Pink;
   
   // Create hover and active colors (20% and 40% darker)
   const hoverColor = darkenColor(baseColor, 20);
   const activeColor = darkenColor(baseColor, 40);
-  
-  // Return tailwind classes with the specific colors
-  return `bg-[${baseColor}] hover:bg-[${hoverColor}] active:bg-[${activeColor}] text-white font-medium`;
+  let textColor = 'white';
+  switch (color) {
+    case 'Yellow':
+    case 'Gold':
+    case 'Silver':
+      textColor = 'black';
+      break;
+    default:
+      break;
+  };
+
+  return {
+    baseColor,
+    hoverColor,
+    activeColor,
+    textColor
+  }
+  // // Return tailwind classes with the specific colors
+  // return `bg-[${baseColor}] hover:bg-[${hoverColor}] active:bg-[${activeColor}] text-white font-medium`;
 };
