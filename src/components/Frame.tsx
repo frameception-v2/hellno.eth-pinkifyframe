@@ -5,7 +5,7 @@ import sdk, { AddFrame } from "@farcaster/frame-sdk";
 import { PROJECT_TITLE } from "~/lib/constants";
 import type { FrameContext } from "@farcaster/frame-node";
 import { ColorSelect } from "./ui/color-select";
-import { COLOR_MAP, ColorName } from "@/lib/colors";
+import { COLOR_MAP, ColorName } from "~/lib/colors";
 
 export default function Frame() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -149,26 +149,6 @@ export default function Frame() {
       console.error('Error loading image from:', profileImage);
       console.log('Attempting fallback loading strategies...');
       setImageLoaded(false);
-
-      // Try alternative CORS proxy if first attempt failed
-      if (profileImage && profileImage.startsWith('https://corsproxy.io')) {
-        console.log('First CORS proxy failed, trying alternative...');
-        const originalUrl = decodeURIComponent(profileImage.replace('https://corsproxy.io/?', ''));
-        const alternativeProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
-
-        const retryImg = new Image();
-        retryImg.crossOrigin = 'anonymous';
-        retryImg.onload = () => {
-          applyPinkFilter(retryImg, intensity);
-        };
-        retryImg.onerror = () => {
-          console.error('All CORS proxies failed, using fallback image');
-          loadFallbackImage();
-        };
-        retryImg.src = alternativeProxy;
-      } else {
-        loadFallbackImage();
-      }
     };
 
     // Helper function to load fallback image
@@ -575,7 +555,7 @@ export default function Frame() {
                 }
               `}</style>
               <div className="flex items-center gap-2 slider-container" data-testid="intensity-slider">
-                <span className="text-xl font-medium min-w-16">{selectedColor} Intensity</span>
+                <span className="text-left flex text-xl font-medium min-w-16">{selectedColor} intensifies</span>
                 <div className="relative w-full">
                   <input
                     type="range"
@@ -601,7 +581,7 @@ export default function Frame() {
               </div>
 
               <div className="mt-4">
-                <h2 className="text-xl font-medium mb-2">Select Theme Color</h2>
+                <h2 className="text-xl font-medium mb-2">Pick Tribe</h2>
                 <ColorSelect 
                   selectedColor={selectedColor}
                   onColorChange={setSelectedColor}
@@ -617,12 +597,14 @@ export default function Frame() {
 
                       // Generate unique download URL with current parameters
                       const downloadUrl = new URL('/api/download', window.location.origin);
+                      console.log('downloadUrl', downloadUrl)
                       downloadUrl.searchParams.set('imageUrl', profileImage);
                       downloadUrl.searchParams.set('intensity', intensity.toString());
                       downloadUrl.searchParams.set('color', selectedColor);
                       downloadUrl.searchParams.set('t', Date.now().toString());
 
                       // Open in new window to trigger download
+                      // ai! this doesn't work in the frame / iframe / miniapp environment, simplify
                       window.location.href = downloadUrl.toString();
 
                       // Show animated feedback toast for mobile users
@@ -799,7 +781,7 @@ export default function Frame() {
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
                       </svg>
-                      Download PNG
+                      Download
                     </>
                   )}
                 </button>
