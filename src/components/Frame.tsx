@@ -196,7 +196,13 @@ export default function Frame() {
     >
       <main className="grid place-items-center px-4 py-4 md:py-8">
         <div className="w-full max-w-[512px] mx-auto relative">
-
+            <h1 className="text-3xl font-bold text-center mb-4">{PROJECT_TITLE}</h1>
+            <div 
+              onClick={() => sdk.actions.viewProfile({ fid: 13596 })} 
+              className="cursor-pointer text-center text-md text-gray-400 mb-4"
+            >
+              made with {'❤️'} by hellno.eth
+            </div>
             {/* Color selection */}
             <div className="mt-4">
               <h2 className="text-xl font-medium mb-2">Pick Tribe</h2>
@@ -208,16 +214,16 @@ export default function Frame() {
           {/* Image display area */}
           <div className="mt-4 relative">
             {processedImageUrl ? (
-              <div className="relative aspect-square">
+              <div className="">
                 <img
                   src={processedImageUrl}
                   alt={`${selectedColor}ified profile`}
-                  className="w-full h-auto max-h-[512px] aspect-square bg-neutral-100 rounded-lg shadow-sm"
+                  className="w-full h-auto aspect-square bg-neutral-100 rounded-xl shadow-lg"
                   style={{
-                    maxWidth: 'min(90vw, 512px)',
-                    maxHeight: 'min(90vh, 512px)',
-                    width: 'min(90vw, min(90vh, 512px))',
-                    height: 'min(90vw, min(90vh, 512px))'
+                    maxWidth: 'min(70vw, 420px)',
+                    maxHeight: 'min(70vh, 420px)',
+                    width: 'min(70vw, min(70vh, 420px))',
+                    height: 'min(70vw, min(70vh, 420px))'
                   }}
                   onLoad={() => setIsLoading(false)}
                   onError={() => setIsLoading(false)}
@@ -327,7 +333,7 @@ export default function Frame() {
               </div>
               <span className="text-md min-w-8 slider-value">{intensity}%</span>
             </div>
-            <div className="controls-container" data-testid="download-container">
+            <div className="w-full controls-container" data-testid="download-container">
               <button
                 data-testid="download-button"
                 onClick={() => {
@@ -454,7 +460,7 @@ export default function Frame() {
                   color: buttonStyle.textColor
                 }}
                 className={cn(
-                  "px-5 py-3 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-105 flex items-center justify-center gap-2"
+                  "w-full px-5 py-3 rounded-lg border disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-105 flex items-center justify-center gap-2"
                 )}
                 aria-label={`Download ${selectedColor.toLowerCase()}ified profile image`}
               >

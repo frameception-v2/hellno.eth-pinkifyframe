@@ -7,7 +7,8 @@ export const COLOR_MAP = {
   Aqua: '#00FFFF',
   Red: '#FF0000',
   Yellow: '#FFFF00',
-  Purple: '#800080'
+  Purple: '#800080',
+  Orange: '#D37F15'
 } as const;
 
 export type ColorName = keyof typeof COLOR_MAP;
