@@ -38,13 +38,13 @@ export default function Frame() {
       
       // Apply pink overlay with full coverage at 100%
       if (intensity === 100) {
-        ctx.fillStyle = '#ff69b4'; // Solid hot pink
+        ctx.fillStyle = '#d717a9'; // Solid hot pink
         ctx.globalCompositeOperation = 'source-over';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       } else {
         const alpha = intensity / 100;
         ctx.globalCompositeOperation = 'multiply';
-        ctx.fillStyle = `rgba(255, 105, 180, ${alpha * 1.5})`; // Stronger pink color
+        ctx.fillStyle = `rgba(215, 23, 169, ${alpha * 1.5})`; // Stronger pink color
         ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
       
@@ -590,7 +590,8 @@ export default function Frame() {
                       
                       // Get canvas data with maximum quality
                       const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
-                      
+                      console.log('dataUrl:', dataUrl);
+                      // ai! change this download pattern to use the sdk and the openUrl method instead
                       // Create and trigger download
                       const link = document.createElement('a');
                       link.download = filename;
