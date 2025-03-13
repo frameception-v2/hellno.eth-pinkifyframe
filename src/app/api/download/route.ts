@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       // First apply original image
       .composite([{
         input: Buffer.from(buffer),
-        blend: 'src-over'
+        blend: 'over'  // Changed from invalid 'src-over' to Sharp's 'over'
       }])
       // Apply color overlay with frontend-equivalent blending
       .composite([{
@@ -71,7 +71,7 @@ export async function GET(request: Request) {
               : { r, g, b, alpha: alpha }
           }
         },
-        blend: intensity === 100 ? 'src-over' : intensity > 50 ? 'src-over' : 'multiply',
+        blend: intensity === 100 ? 'over' : intensity > 50 ? 'over' : 'multiply',  // Fixed blend modes
         tile: true
       }])
       // Convert back to sRGB for web output
