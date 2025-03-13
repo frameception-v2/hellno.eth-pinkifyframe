@@ -449,7 +449,10 @@ export default function Frame() {
                   }
                 }}
                 disabled={!processedImageUrl || isLoading}
-                className={cn(getButtonClassnameForColor(selectedColor), "mt-2 px-4 py-2 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed after:transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2")}
+                className={cn(
+                  getButtonClassnameForColor(selectedColor), 
+                  "mt-2 px-4 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                )}
                 aria-label={`Download ${selectedColor.toLowerCase()}ified profile image`}
               >
                 {isLoading ? (
