@@ -64,14 +64,31 @@ export async function GET(request: Request) {
     const imageBuffer = await response.arrayBuffer();
     const processedImage = await sharp(Buffer.from(imageBuffer))
       .composite([{
-        input: Buffer.from(`
-          <svg width="100%" height="100%">
-            <rect width="100%" height="100%" 
-                  fill="rgba(215,23,169,${Math.min(intensity/100 * 0.7, 0.7)})"
-                  style="mix-blend-mode: multiply"/>
-          </svg>
-        `),
-        blend: 'over'
+        input: Buffer.from(
+          intensity === 100 ? 
+          // Solid overlay for 100% intensity
+          `<svg width="100%" height="100%">
+            <rect width="100%" height="100%" fill="#d717a9"/>
+          </svg>` :
+          // Dynamic overlay for other intensities
+          (() => {
+            const baseAlpha = Math.pow(intensity / 100, 0.7);
+            const transitionStart = 50;
+            const transitionFactor = Math.min(
+              Math.max((intensity - transitionStart) / (100 - transitionStart), 0), 
+              1
+            );
+            const alpha = baseAlpha * (1 - transitionFactor) + transitionFactor;
+            const blendMode = transitionFactor > 0 ? 'source-over' : 'multiply';
+
+            return `<svg width="100%" height="100%">
+              <rect width="100%" height="100%" 
+                    fill="rgba(215,23,169,${alpha})"
+                    style="mix-blend-mode: ${blendMode}"/>
+            </svg>`;
+          })()
+        ),
+        blend: intensity === 100 ? 'src' : 'over'
       }])
       .png({ quality: 90, progressive: true })
       .toBuffer();

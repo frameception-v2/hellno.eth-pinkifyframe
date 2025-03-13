@@ -11,7 +11,14 @@ export default function Frame() {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<FrameContext | undefined>();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [intensity, setIntensity] = useState<number>(69); // Default intensity
+  const [intensity, setIntensity] = useState<number>(() => {
+    // Server-side compatible initial value calculation
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('pinkify-intensity');
+      return saved ? Math.min(Math.max(parseInt(saved), 0), 100) : 50;
+    }
+    return 50;
+  });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
