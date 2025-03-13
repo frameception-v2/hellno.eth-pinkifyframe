@@ -16,6 +16,7 @@ export default function Frame() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const [addFrameResult, setAddFrameResult] = useState("");
+  const [downloadState, setDownloadState] = useState<'idle' | 'pending' | 'success' | 'error'>('idle');
 
   // Function to apply pink filter to the image
   const applyPinkFilter = useCallback((img: HTMLImageElement, intensity: number) => {
@@ -586,171 +587,71 @@ export default function Frame() {
               <div className="controls-container" data-testid="download-container">
                 <button
                   data-testid="download-button"
-                  onClick={() => {
-                    if (!canvasRef.current || !imageLoaded) return;
+                  onClick={async () => {
+                    if (!context?.user?.pfpUrl || !intensity || !imageLoaded) return;
                     
+                    setDownloadState('pending');
                     try {
-                      // Create a high-quality PNG with proper filename
-                      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                      const filename = `pinkified-profile-${timestamp}.png`;
+                      // Sanitize filename
+                      const fid = context.user.fid || 'profile';
+                      const sanitizedFid = fid.toString().replace(/[^a-z0-9]/gi, '_').substring(0, 40);
+                      const filename = `pinkified-${sanitizedFid}-${intensity}pc.png`;
+
+                      // Construct API URL with parameters
+                      const apiUrl = new URL('/api/download-image', process.env.NEXT_PUBLIC_URL);
+                      apiUrl.searchParams.set('url', context.user.pfpUrl);
+                      apiUrl.searchParams.set('intensity', intensity.toString());
+                      apiUrl.searchParams.set('filename', filename);
+
+                      // Open in Frame SDK
+                      sdk.actions.openUrl(apiUrl.toString());
                       
-                      // Get canvas data with maximum quality
-                      const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
-                      // console.log('dataUrl:', dataUrl);
-                      // Open image URL using Frame SDK
-                      sdk.actions.openUrl(dataUrl);
-                      
-                      // Show animated feedback toast for mobile users
-                      const toast = document.createElement('div');
-                      toast.textContent = 'Image downloaded!';
-                      toast.style.position = 'fixed';
-                      toast.style.bottom = '20px';
-                      toast.style.left = '50%';
-                      toast.style.transform = 'translateX(-50%) translateY(20px)';
-                      toast.style.backgroundColor = '#ec4899';
-                      toast.style.color = 'white';
-                      toast.style.padding = '10px 20px';
-                      toast.style.borderRadius = '8px';
-                      toast.style.zIndex = '1000';
-                      toast.style.boxShadow = '0 4px 12px rgba(236, 72, 153, 0.3)';
-                      toast.style.fontWeight = '600';
-                      toast.style.fontSize = '14px';
-                      toast.style.transition =  'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                      toast.style.opacity = '0';
-                      toast.style.display = 'flex';
-                      toast.style.alignItems = 'center';
-                      toast.style.gap = '8px';
-                      
-                      // Add success icon to toast
-                      const checkIcon = document.createElement('span');
-                      checkIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                      toast.insertBefore(checkIcon, toast.firstChild);
-                      
-                      document.body.appendChild(toast);
-                      
-                      // Animate toast in
-                      requestAnimationFrame(() => {
-                        toast.style.opacity = '1';
-                        toast.style.transform = 'translateX(-50%) translateY(0)';
-                      });
-                      
-                      // Animate toast out
-                      setTimeout(() => {
-                        toast.style.opacity = '0';
-                        toast.style.transform = 'translateX(-50%) translateY(-20px)';
-                        setTimeout(() => {
-                          if (document.body.contains(toast)) {
-                            document.body.removeChild(toast);
-                          }
-                        }, 300);
-                      }, 2000);
-                      
-                      // Track download in analytics if available
-                      try {
-                        if (typeof window !== 'undefined' && 'posthog' in window) {
-                          // Use proper TypeScript declaration for window.posthog
-                          const posthog = (window as any).posthog;
-                          if (posthog && typeof posthog.capture === 'function') {
-                            posthog.capture('download_image', { 
-                              intensity: intensity,
-                              platform: 'farcaster_frame'
-                            });
-                          }
-                        }
-                      } catch (analyticsError) {
-                        console.error('Analytics error:', analyticsError);
-                        // Don't let analytics errors break the download functionality
-                      }
+                      // Show success state temporarily
+                      setDownloadState('success');
+                      setTimeout(() => setDownloadState('idle'), 2000);
                       
                     } catch (error) {
-                      console.error('Error downloading image:', error);
-                      
-                      // Show animated error toast
-                      const errorToast = document.createElement('div');
-                      errorToast.textContent = 'Download failed. Try again.';
-                      errorToast.style.position = 'fixed';
-                      errorToast.style.bottom = '20px';
-                      errorToast.style.left = '50%';
-                      errorToast.style.transform = 'translateX(-50%) translateY(20px)';
-                      errorToast.style.backgroundColor = '#ef4444';
-                      errorToast.style.color = 'white';
-                      errorToast.style.padding = '10px 20px';
-                      errorToast.style.borderRadius = '8px';
-                      errorToast.style.zIndex = '1000';
-                      errorToast.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
-                      errorToast.style.fontWeight = '600';
-                      errorToast.style.fontSize = '14px';
-                      errorToast.style.transition = 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                      errorToast.style.opacity = '0';
-                      errorToast.style.display = 'flex';
-                      errorToast.style.alignItems = 'center';
-                      errorToast.style.gap = '8px';
-                      
-                      // Add error icon to toast
-                      const errorIcon = document.createElement('span');
-                      errorIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-                      errorToast.insertBefore(errorIcon, errorToast.firstChild);
-                      
-                      document.body.appendChild(errorToast);
-                      
-                      // Animate error toast in
-                      requestAnimationFrame(() => {
-                        errorToast.style.opacity = '1';
-                        errorToast.style.transform = 'translateX(-50%) translateY(0)';
-                      });
-                      
-                      // Animate error toast out with shake effect
-                      setTimeout(() => {
-                        errorToast.style.animation = 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both';
-                        errorToast.style.transform = 'translateX(-50%) translateY(0)';
-                        
-                        // Add shake keyframes
-                        const style = document.createElement('style');
-                        style.innerHTML = `
-                          @keyframes shake {
-                            10%, 90% { transform: translateX(-51%) translateY(0); }
-                            20%, 80% { transform: translateX(-49%) translateY(0); }
-                            30%, 50%, 70% { transform: translateX(-52%) translateY(0); }
-                            40%, 60% { transform: translateX(-48%) translateY(0); }
-                          }
-                        `;
-                        document.head.appendChild(style);
-                        
-                        setTimeout(() => {
-                          errorToast.style.opacity = '0';
-                          errorToast.style.transform = 'translateX(-50%) translateY(-20px)';
-                          setTimeout(() => {
-                            if (document.body.contains(errorToast)) {
-                              document.body.removeChild(errorToast);
-                            }
-                            if (document.head.contains(style)) {
-                              document.head.removeChild(style);
-                            }
-                          }, 300);
-                        }, 1000);
-                      }, 2000);
-                      
-                      // Try alternative download method for mobile
-                      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                        try {
-                          // Open image in new tab as fallback
-                          window.open(canvasRef.current.toDataURL('image/png'), '_blank');
-                        } catch (e) {
-                          console.error('Fallback download failed:', e);
-                        }
-                      }
+                      console.error('Download failed:', error);
+                      setDownloadState('error');
+                      setTimeout(() => setDownloadState('idle'), 2000);
                     }
                   }}
-                  disabled={!imageLoaded}
+                  disabled={!imageLoaded || downloadState === 'pending'}
                   className="mt-2 px-4 py-2 bg-pink-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-600 active:bg-pink-700 transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                   aria-label="Download pinkified profile image"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-download">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                  Download PNG
+                  {downloadState === 'pending' ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                      Generating...
+                    </>
+                  ) : downloadState === 'success' ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                      Ready!
+                    </>
+                  ) : downloadState === 'error' ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M15 9l-6 6M9 9l6 6" />
+                      </svg>
+                      Failed
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      Download PNG
+                    </>
+                  )}
                 </button>
               </div>
             </div>
