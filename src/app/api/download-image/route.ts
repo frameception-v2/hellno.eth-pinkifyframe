@@ -88,7 +88,7 @@ export async function GET(request: Request) {
             </svg>`;
           })()
         ),
-        blend: intensity === 100 ? 'src' : 'over'
+        blend: intensity === 100 ? 'dest-over' : 'multiply'
       }])
       .png({ quality: 90, progressive: true })
       .toBuffer();
